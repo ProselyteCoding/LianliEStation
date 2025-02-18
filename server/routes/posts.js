@@ -4,6 +4,7 @@ import upload from "../middlewares/uploadImg.js"; // 引入图片上传中间件
 import dotenv from "dotenv";
 import jwt from "jsonwebtoken"; // 用于生成 JWT
 import fs from "fs";
+import cacheService from "../services/cacheService.js"; // 引入缓存服务
 
 let router = Router();
 
@@ -11,44 +12,45 @@ dotenv.config();
 const SECRET_KEY = process.env.SECRET_KEY;
 
 // 获取帖子列表
-router.get("/", (req, res) => {
-  db.query("SELECT * FROM posts WHERE status != 'deleted'") // 排除已删除的帖子
-    .then(([rows]) => {
-      if (rows.length === 0) {
-        return res.status(404).json({ message: "没有找到帖子" });
+router.get("/", async (req, res) => {
+  try {
+    // 尝试从缓存获取数据
+    const cachedPosts = await cacheService.getPostList();
+    if (cachedPosts) {
+      return res.status(200).json(cachedPosts);
+    }
+
+    // 缓存未命中，从数据库获取
+    const [rows] = await db.query("SELECT * FROM posts WHERE status != 'deleted'");
+
+    if (rows.length === 0) {
+      return res.status(404).json({ message: "没有找到帖子" });
+    }
+
+    const postIds = rows.map((post) => post.id);
+    const [imageRows] = await db.query("SELECT post_id, image_url FROM post_images WHERE post_id IN (?)", [postIds]);
+
+    const imagesMap = imageRows.reduce((map, row) => {
+      if (!map[row.post_id]) {
+        map[row.post_id] = [];
       }
+      map[row.post_id].push(row.image_url);
+      return map;
+    }, {});
 
-      // 获取所有帖子的图片信息
-      const postIds = rows.map((post) => post.id);
+    const postsWithImages = rows.map((post) => ({
+      ...post,
+      images: imagesMap[post.id] || [],
+    }));
 
-      db.query("SELECT post_id, image_url FROM post_images WHERE post_id IN (?)", [postIds])
-        .then(([imageRows]) => {
-          // 创建一个帖子 ID 到图片 URL 的映射
-          const imagesMap = imageRows.reduce((map, row) => {
-            if (!map[row.post_id]) {
-              map[row.post_id] = [];
-            }
-            map[row.post_id].push(row.image_url);
-            return map;
-          }, {});
+    // 设置缓存
+    await cacheService.setPostList(postsWithImages);
 
-          // 将图片信息添加到每个帖子中
-          const postsWithImages = rows.map((post) => {
-            post.images = imagesMap[post.id] || []; // 如果没有图片，返回空数组
-            return post;
-          });
-
-          res.status(200).json(postsWithImages);
-        })
-        .catch((err) => {
-          console.error(err);
-          res.status(500).json({ message: "查询帖子图片失败" });
-        });
-    })
-    .catch((err) => {
-      console.error(err);
-      res.status(500).json({ message: "服务器错误" });
-    });
+    res.status(200).json(postsWithImages);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "服务器错误" });
+  }
 });
 
 // 新增帖子
@@ -102,6 +104,23 @@ router.post("/publish", upload.array("images", 5), async (req, res) => {
       await Promise.all(imagePromises); // 等待所有图片保存完成
     }
 
+    // 清除缓存
+    await cacheService.clearAllRelatedCache();
+
+    // 将新帖子数据存入缓存
+    const postData = {
+      id: postId,
+      author_id,
+      title,
+      content,
+      price,
+      campus_id,
+      post_type,
+      tag,
+      images: imageUrls,
+    };
+    await cacheService.handleNewPost(postData);
+
     // 返回成功信息
     res.status(201).json({ message: "发布成功", image_urls: imageUrls });
   } catch (err) {
@@ -119,9 +138,9 @@ router.post("/publish", upload.array("images", 5), async (req, res) => {
 });
 
 // 删除帖子
-router.delete("/:post_id", (req, res) => {
-  const { post_id } = req.params; // 从 URL 参数中获取 post_id
-  const token = req.headers.authorization?.split(" ")[1]; // 获取请求头中的 token
+router.delete("/:post_id", async (req, res) => {
+  const { post_id } = req.params;
+  const token = req.headers.authorization?.split(" ")[1];
 
   if (!token) {
     return res.status(401).json({ message: "未提供 Token" });
@@ -130,79 +149,74 @@ router.delete("/:post_id", (req, res) => {
   try {
     // 解码 token 获取用户信息
     const decoded = jwt.verify(token, SECRET_KEY);
+    const author_id = decoded.user_id;
 
-    const author_id = decoded.user_id; // 从 token 中获取用户的 ID
-
-    // 确保必需的参数存在
+    // 参数验证
     if (!post_id || !author_id) {
       return res.status(400).json({ message: "缺少必要参数" });
     }
 
-    // 查找帖子并验证用户是否是作者
-    db.query("SELECT * FROM posts WHERE id = ? AND author_id = ?", [post_id, author_id])
-      .then(([rows]) => {
-        if (rows.length === 0) {
-          return res.status(404).json({ message: "帖子未找到或用户无权删除" });
-        }
+    // 查找帖子并验证用户权限
+    const [rows] = await db.query("SELECT * FROM posts WHERE id = ? AND author_id = ?", [post_id, author_id]);
 
-        // 软删除：将 status 字段设置为 'deleted'
-        db.query("UPDATE posts SET status = 'deleted' WHERE id = ?", [post_id])
-          .then(() => {
-            res.status(200).json({ message: "帖子已标记为删除" });
-          })
-          .catch((err) => {
-            console.error(err);
-            res.status(500).json({ message: "服务器错误" });
-          });
-      })
-      .catch((err) => {
-        console.error(err);
-        res.status(500).json({ message: "服务器错误" });
-      });
+    if (rows.length === 0) {
+      return res.status(404).json({ message: "帖子未找到或用户无权删除" });
+    }
+
+    // 软删除帖子
+    await db.query("UPDATE posts SET status = 'deleted' WHERE id = ?", [post_id]);
+
+    // 缓存更新:
+    await cacheService.handlePostDeletion(post_id, author_id);
+
+    return res.status(200).json({ message: "帖子已标记为删除" });
   } catch (err) {
     console.error(err);
-    res.status(401).json({ message: "无效的 Token" });
+    if (err.name === "JsonWebTokenError") {
+      return res.status(401).json({ message: "无效的 Token" });
+    }
+    return res.status(500).json({ message: "服务器错误" });
   }
 });
 
 // 获取帖子详情
-router.get("/byID/:post_id", (req, res) => {
-  const { post_id } = req.params; // 从 URL 参数中获取 post_id
+router.get("/byID/:post_id", async (req, res) => {
+  const { post_id } = req.params;
 
   if (!post_id) {
     return res.status(400).json({ message: "缺少帖子 ID" });
   }
 
-  // 查询帖子信息，并且获取与该帖子相关的图片
-  db.query("SELECT id, title, content, author_id, created_at, status, price, campus_id, post_type, tag, likes, complaints FROM posts WHERE id = ? AND status != 'deleted'", [post_id])
-    .then(([rows]) => {
-      if (rows.length === 0) {
-        return res.status(404).json({ message: "帖子未找到或已被删除" });
-      }
+  try {
+    // 尝试从缓存获取数据
+    const cachedPost = await cacheService.getPostDetail(post_id);
+    if (cachedPost) {
+      return res.status(200).json(cachedPost);
+    }
 
-      const post = rows[0]; // 获取帖子信息
+    // 缓存未命中，从数据库获取
+    const [rows] = await db.query("SELECT * FROM posts WHERE id = ? AND status != 'deleted'", [post_id]);
 
-      // 查询与该帖子关联的图片信息
-      db.query("SELECT image_url FROM post_images WHERE post_id = ?", [post_id])
-        .then(([imageRows]) => {
-          // 获取图片链接数组
-          const images = imageRows.map((row) => row.image_url);
+    if (rows.length === 0) {
+      return res.status(404).json({ message: "帖子未找到或已被删除" });
+    }
 
-          // 返回帖子信息以及相关图片的 URL 列表
-          res.status(200).json({
-            post: post,
-            images: images, // 将图片信息返回给前端
-          });
-        })
-        .catch((err) => {
-          console.error(err);
-          res.status(500).json({ message: "查询帖子图片失败" });
-        });
-    })
-    .catch((err) => {
-      console.error(err);
-      res.status(500).json({ message: "服务器错误" });
-    });
+    const post = rows[0];
+    const [imageRows] = await db.query("SELECT image_url FROM post_images WHERE post_id = ?", [post_id]);
+
+    const postData = {
+      post,
+      images: imageRows.map((row) => row.image_url),
+    };
+
+    // 设置缓存
+    await cacheService.setPostDetail(post_id, postData);
+
+    res.status(200).json(postData);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "服务器错误" });
+  }
 });
 
 // 查询帖子（按条件）
@@ -220,6 +234,14 @@ router.get("/search", async (req, res) => {
       page = 1,
       limit = 10,
     } = req.query;
+
+    // 尝试从缓存获取数据
+    if (!keyword && !title && !status && !campus_id && !post_type && !tag && !min_price && !max_price) {
+      const cachedResults = await cacheService.getPaginatedPosts(page, limit);
+      if (cachedResults) {
+        return res.status(200).json(cachedResults);
+      }
+    }
 
     // 计算分页偏移量
     const offset = (page - 1) * limit;
@@ -330,19 +352,28 @@ router.get("/search", async (req, res) => {
       return post;
     });
 
-    res.status(200).json({
+    // 返回带分页信息的响应
+    const result = {
       total,
-      count: postsWithImages.length, // 添加当前页帖子数量
+      count: postsWithImages.length,
       page: Number(page),
       limit: Number(limit),
       posts: postsWithImages,
-    });
+    };
+
+    // 仅在没有关键字搜索时设置缓存
+    if (!keyword && !title && !status && !campus_id && !post_type && !tag && !min_price && !max_price) {
+      await cacheService.setPaginatedPosts(page, limit, result);
+    }
+
+    res.status(200).json(result);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "服务器错误" });
   }
 });
 
+// 修改帖子
 router.put("/:post_id", upload.array("images", 5), async (req, res) => {
   const { post_id } = req.params;
   const { title, content, price, campus_id, status, post_type, tag } = req.body;
@@ -419,6 +450,24 @@ router.put("/:post_id", upload.array("images", 5), async (req, res) => {
 
     await db.query(updateQuery, [title, content, price, campus_id, status, post_type, tag, post_id]);
 
+    // 更新成功后删除缓存
+    await cacheService.clearAllRelatedCache(post_id, author_id);
+
+    // 更新缓存
+    await cacheService.handlePostUpdate(
+      post_id,
+      {
+        title,
+        content,
+        price,
+        campus_id,
+        status,
+        post_type,
+        tag,
+        images: files ? files.map((file) => `/uploads/${file.filename}`) : undefined,
+      },
+      author_id
+    );
     // 返回成功信息
     res.status(200).json({ message: "帖子更新成功" });
   } catch (err) {
@@ -459,6 +508,10 @@ router.put("/like/:post_id", async (req, res) => {
       return res.status(404).json({ message: "帖子未找到" });
     }
 
+    // 先查询最新值
+    const [updatedPost] = await db.query("SELECT likes FROM posts WHERE id = ?", [post_id]);
+    await cacheService.handleCounterUpdate(post_id, "likes", updatedPost[0].likes);
+
     res.status(200).json({ message: likeChange === 1 ? "点赞成功" : "取消点赞成功" });
   } catch (err) {
     console.error(err);
@@ -489,6 +542,10 @@ router.put("/complaint/:post_id", async (req, res) => {
     if (result.affectedRows === 0) {
       return res.status(404).json({ message: "帖子未找到" });
     }
+
+    // 先查询最新值
+    const [updatedPost] = await db.query("SELECT complaints FROM posts WHERE id = ?", [post_id]);
+    await cacheService.handleCounterUpdate(post_id, "complaints", updatedPost[0].complaints);
 
     res.status(200).json({ message: complaintChange === 1 ? "投诉成功" : "取消投诉成功" });
   } catch (err) {
