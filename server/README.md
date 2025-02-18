@@ -27,8 +27,24 @@ PORT=
 SECRET_KEY=
 EMAIL_USER=
 EMAIL_PASS=
-API_KEY
+API_KEY=
 ```
+
+使用`redis`进行缓存管理，请在`.env`新建如下字段，提供项目`redis`服务所在的主机 ip，端口及密码
+
+```
+REDIS_HOST=
+REDIS_PORT=
+REDIS_PASSWORD=
+```
+
+其中`REDIS_HOST`默认为`localhost`，`REDIS_PORT`默认为`6379`，`REDIS_PASSWORD`默认为空
+
+## Redis 环境
+
+若不知道**如何在本地 windwos 环境下**启动`Redis`服务，请自行寻找解决方案方案或参看以下内容[如何在 windows 中使用 Docker —— 以 Redis 为例]([如何在 windows 中使用 Docker —— 以 Redis 为例 | kpmark](http://60.205.131.158/blog/2025/02/03/2025-2-3/))
+
+在启动后端服务后，使用`node redis.test.js`即可测试该服务是否正确连接至后端
 
 ## 临时管理员账户
 
@@ -73,7 +89,7 @@ CREATE TABLE `posts` (
     `status` ENUM('active', 'inactive', 'deleted') DEFAULT 'active',
     `price` DECIMAL(10, 2) DEFAULT 0.00,
     `campus_id` INT NOT NULL,
-    `likes` INT DEFAULT 0, 
+    `likes` INT DEFAULT 0,
     `complaints` INT DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -205,7 +221,7 @@ VALUES
 
 主题图片等不常改动的信息**强烈建议**使用 `localStorage` 缓存在前端，以减少数据库压力
 
-如果有未使用的api请告知后端删除
+如果有未使用的 api 请告知后端删除
 
 ## users
 
@@ -750,20 +766,17 @@ VALUES
     { "message": "服务器错误" }
     ```
 
+### 根据用户 ID 查询用户基本信息
 
-
-
-
-### 根据用户ID查询用户基本信息
-
-- **方法:** `GET`  
-- **路径:** `/api/users/userInfo/:user_id`  
+- **方法:** `GET`
+- **路径:** `/api/users/userInfo/:user_id`
 - **功能:** 根据用户 ID 获取用户的 `qq_id`、`credit` 和 `avatar` 信息。
 - **请求参数：**`user_id`: 用户的 ID，整型，必须。
 
 - **成功响应:**
-状态码: `200`
-内容:
+  状态码: `200`
+  内容:
+
   ```json
   {
     "qq_id": "123456789",
@@ -771,11 +784,13 @@ VALUES
     "avatar": "/uploads/avatar123.jpg"
   }
   ```
+
   - `qq_id`: 用户的 QQ 号码，字符串。
   - `credit`: 用户的信用分，整型。
   - `avatar`: 用户的头像路径，字符串。
 
 - **错误响应:**
+
   - **状态码:** `400`
   - **内容:** `{ "message": "缺少用户 ID" }`
   - **状态码:** `404`
@@ -784,12 +799,15 @@ VALUES
   - **内容:** `{ "message": "服务器错误" }`
 
 - **示例请求：**
+
 ```bash
 GET /api/users/userInfo/123
 ```
+
 （假设 `123` 为用户的 ID）
 
 - **示例响应：**
+
 ```json
 {
   "qq_id": "123456789",
@@ -797,7 +815,6 @@ GET /api/users/userInfo/123
   "avatar": "/uploads/avatar123.jpg"
 }
 ```
-
 
 ## posts
 
