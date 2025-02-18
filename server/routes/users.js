@@ -8,15 +8,13 @@ import fs from "fs";
 import { registerLimiter, loginLimiter, passwordChangeLimiter, verificationLimiter } from "../middlewares/limiter.js"; // 引入限流中间件
 import logIP from "../middlewares/logIP.js"; // 记录IP的中间件
 import sendVerificationCode from "../middlewares/mailer.js"; // 引入邮件发送逻辑
+import redis from "../redis.js"; // 引入 Redis
+import { decode } from "punycode";
 
 let router = Router();
 
 dotenv.config();
 const SECRET_KEY = process.env.SECRET_KEY;
-
-// 存储验证码的临时存储（实际使用中应该用缓存或数据库）
-let currentVerificationCode = "";
-let currentVerificationEmail = "";
 
 // 获取所有用户信息（仅限管理员）
 router.get("/", (req, res) => {
@@ -314,7 +312,12 @@ router.put("/profile", async (req, res) => {
 
 // 请求验证码（发送邮件）
 router.post("/RequestVerification", verificationLimiter, async (req, res) => {
+  const token = req.headers.authorization?.split(" ")[1];
   const { email } = req.body;
+
+  if (!token) {
+    return res.status(401).json({ message: "未提供 Token" });
+  }
 
   if (!email) {
     return res.status(400).json({ message: "邮箱不能为空" });
@@ -324,11 +327,8 @@ router.post("/RequestVerification", verificationLimiter, async (req, res) => {
     // 发送验证码
     const verificationCode = await sendVerificationCode(email);
 
-    // 存储验证码和邮箱（简易实现，实际上可以存入数据库或缓存）
-    currentVerificationCode = verificationCode;
-    currentVerificationEmail = email;
-    // console.log(currentVerificationCode);
-    // console.log(currentVerificationEmail);
+    // 使用Redis存储验证码
+    await redis.set(`verificationCode:${email}`, verificationCode, "EX", 300); // 5分钟后过期
 
     res.status(200).json({ message: "验证码已发送，请检查您的邮箱" });
   } catch (error) {
@@ -339,14 +339,20 @@ router.post("/RequestVerification", verificationLimiter, async (req, res) => {
 
 // 修改密码
 router.put("/change-password", passwordChangeLimiter, async (req, res) => {
+  const token = req.headers.authorization?.split(" ")[1];
   const { email, newPassword, verificationCode } = req.body;
 
-  if (!email || !newPassword || !verificationCode) {
-    return res.status(400).json({ message: "缺少必要参数" });
+  if (!token) {
+    return res.status(401).json({ message: "未提供 Token" });
   }
 
-  // 验证验证码是否正确
-  if (verificationCode !== currentVerificationCode || email !== currentVerificationEmail) {
+  if (!email || !newPassword || !verificationCode) {
+    return res.status(400).json({ message: "请输入有效的邮箱、验证码和新密码" });
+  }
+
+  // 从Redis获取验证码并验证
+  const cachedCode = await redis.get(`verificationCode:${email}`);
+  if (!cachedCode || verificationCode !== cachedCode) {
     return res.status(400).json({ message: "验证码错误或已过期" });
   }
 
@@ -363,10 +369,13 @@ router.put("/change-password", passwordChangeLimiter, async (req, res) => {
     // 更新密码
     await db.query("UPDATE users SET password = ? WHERE email = ?", [hashedPassword, email]);
 
+    // 验证成功后删除验证码
+    await redis.del(`verificationCode:${email}`);
+
     res.status(200).json({ message: "密码修改成功" });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "服务器错误" });
+    res.status(500).json({ message: "服务器错误，请稍后重试" });
   }
 });
 
@@ -669,8 +678,6 @@ router.put("/updateCredit", async (req, res) => {
   }
 });
 
-
-
 // 根据用户ID查询用户的qq_id, credit,和avatar信息,便于前端帖子的详情页查询用户基本信息
 router.get("/userInfo/:user_id", async (req, res) => {
   const { user_id } = req.params;
@@ -686,7 +693,7 @@ router.get("/userInfo/:user_id", async (req, res) => {
       return res.status(404).json({ message: "用户不存在" });
     }
 
-    const user = rows[0]; 
+    const user = rows[0];
     res.status(200).json({
       qq_id: user.qq_id,
       credit: user.credit,
@@ -697,7 +704,5 @@ router.get("/userInfo/:user_id", async (req, res) => {
     res.status(500).json({ message: "服务器错误" });
   }
 });
-
-
 
 export default router;
