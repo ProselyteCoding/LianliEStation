@@ -678,7 +678,7 @@ router.put("/updateCredit", async (req, res) => {
   }
 });
 
-// 根据用户ID查询用户的qq_id, credit,和avatar信息,便于前端帖子的详情页查询用户基本信息
+// 根据用户ID查询用户的qq_id, credit,avatar,nickname信息,便于前端帖子的详情页查询用户基本信息
 router.get("/userInfo/:user_id", async (req, res) => {
   const { user_id } = req.params;
 
@@ -687,7 +687,7 @@ router.get("/userInfo/:user_id", async (req, res) => {
   }
 
   try {
-    const [rows] = await db.query("SELECT qq_id, credit, avatar FROM users WHERE id = ?", [user_id]);
+    const [rows] = await db.query("SELECT qq_id, credit, avatar,nickname FROM users WHERE id = ?", [user_id]);
 
     if (rows.length === 0) {
       return res.status(404).json({ message: "用户不存在" });

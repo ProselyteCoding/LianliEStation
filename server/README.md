@@ -777,7 +777,7 @@ VALUES
 
 - **方法:** `GET`
 - **路径:** `/api/users/userInfo/:user_id`
-- **功能:** 根据用户 ID 获取用户的 `qq_id`、`credit` 和 `avatar` 信息。
+- **功能:** 根据用户 ID 获取用户的 `qq_id`、`credit` 、`avatar`，`nickname` 信息。
 - **请求参数：**`user_id`: 用户的 ID，整型，必须。
 
 - **成功响应:**
@@ -788,13 +788,15 @@ VALUES
   {
     "qq_id": "123456789",
     "credit": 500,
-    "avatar": "/uploads/avatar123.jpg"
+    "avatar": "/uploads/avatar123.jpg",
+    "nickname": "3333333"
   }
   ```
 
   - `qq_id`: 用户的 QQ 号码，字符串。
   - `credit`: 用户的信用分，整型。
   - `avatar`: 用户的头像路径，字符串。
+  - `nickname`: 用户昵称，字符串。
 
 - **错误响应:**
 
@@ -819,7 +821,8 @@ GET /api/users/userInfo/123
 {
   "qq_id": "123456789",
   "credit": 500,
-  "avatar": "/uploads/avatar123.jpg"
+  "avatar": "/uploads/avatar123.jpg"，
+  "nickname": "3333333"
 }
 ```
 
