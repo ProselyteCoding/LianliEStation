@@ -698,6 +698,7 @@ router.get("/userInfo/:user_id", async (req, res) => {
       qq_id: user.qq_id,
       credit: user.credit,
       avatar: user.avatar,
+      nickname:user.nickname
     });
   } catch (err) {
     console.error(err);

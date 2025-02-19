@@ -14,6 +14,8 @@ interface Post {
   price: number;
   campus_id: number;
   images: string[];
+  likes: number;
+  complaints: number;
 }
 
 interface Filters {

@@ -1,8 +1,7 @@
 import { usePostStore, useUserStore } from "../../store";
 import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom"; // 使用 useParams 从路由获取参数
 import "./Detail.scss";
-import user from "../../assets/user.png";
 import copy from "../../assets/copy.png";
 import stars from "../../assets/stars.png";
 import like from "../../assets/like.png";
@@ -16,20 +15,32 @@ import img2 from "../../assets/background2.jpg";
 import img3 from "../../assets/background3.jpg";
 
 const Detail = () => {
+  const param = useParams();
+  const ID = param.postId;
   const images = [img1, img2, img3];
-  const currentUser = useUserStore(state => state.currentUser);
-  const [qq, setQq] = useState(currentUser?.qq); // 初始化 qq
+  const { fetchByID, detailUser } = useUserStore();
+  const { fetchPost, currentPost } = usePostStore();
+  const [qq, setQq] = useState(""); // 初始化 qq
   const [currentIndex, setCurrentIndex] = useState(0);
   const [currentAlter, setCurrentAlter] = useState("user");
-  const touchStartX = useRef(0); // 触摸起始位置
-  const touchEndX = useRef(0); // 触摸结束位置
-
+  const touchStartX = useRef(0);
+  const touchEndX = useRef(0);
   const navigate = useNavigate();
 
-  // 当 currentUser 变化时更新 qq 
+  // 根据 postID 获取帖子和用户数据
   useEffect(() => {
-    setQq(currentUser?.qq);
-  }, [currentUser]);
+    const fetchData = async () => {
+      const numericID = Number(ID);
+      await fetchPost(numericID);
+      const userId = currentPost?.author_id || 0; // 确保在获取到 currentPost 后再获取用户信息
+      await fetchByID(userId);
+      setQq(detailUser?.qq || ""); // 在获取到 detailUser 后设置 qq
+    };
+
+    if (ID) {
+      fetchData();
+    }
+  }, [ID]);
 
   // 处理滑动事件
   const handleTouchStart = (e: any) => {
@@ -61,7 +72,6 @@ const Detail = () => {
 
   // 点击复制按钮，复制发布者QQ号到剪贴板
   const handleCopy = () => {
-    console.log(currentUser);
     if (qq) {
       navigator.clipboard
         .writeText(qq)
@@ -75,6 +85,20 @@ const Detail = () => {
       console.error("未获取到当前用户QQ号");
     }
   };
+
+  // 处理时间格式化
+  const formatDateTime = (dateTime:string|undefined) => {
+    if (!dateTime) return ""; // 如果没有时间字符串，返回空
+    const datePart = dateTime.split("T")[0]; // 获取日期部分
+    const timePart = dateTime.split("T")[1].split(":"); // 获取时间部分并分割为数组
+
+    const month = datePart.split("-")[1]; // 获取月份
+    const day = datePart.split("-")[2]; // 获取日期
+    const hour = timePart[0]; // 获取小时
+    const minute = timePart[1]; // 获取分钟
+
+    return `${month}-${day} ${hour}:${minute}`; // 返回格式化后的字符串
+  }; 
 
   return (
     <div className="detail-container">
@@ -111,62 +135,65 @@ const Detail = () => {
             alt={`${currentIndex + 1}`}
           />
           <div className="slider-index">
-            <div
-              className="index-item"
-              style={{
-                backgroundColor: currentIndex === 0 ? "white" : "black",
-              }}
-            ></div>
-            <div
-              className="index-item"
-              style={{
-                backgroundColor: currentIndex === 1 ? "white" : "black",
-              }}
-            ></div>
-            <div
-              className="index-item"
-              style={{
-                backgroundColor: currentIndex === 2 ? "white" : "black",
-              }}
-            ></div>
+            {images.map((_, index) => (
+              <div
+                key={index}
+                className="index-item"
+                style={{
+                  backgroundColor: currentIndex === index ? "white" : "black",
+                }}
+              ></div>
+            ))}
           </div>
         </div>
       </div>
-      <div className="detail-title">
-        占位符内容，请替换为实际内容。占位符内容，请替换为实际内容。
-      </div>
+      <div className="detail-title">{currentPost?.title}</div>
       <div className="detail-profile">
-        <div className="detail-price">￥5</div>
-        <div className="detail-postType">出</div>
-        <div className="detail-tag">学业资料</div>
+        <div className="detail-price">￥{currentPost?.price}</div>
+        <div className="detail-postType">
+          {currentPost?.post_type === "sell" ? "出" : "收"}
+        </div>
+        <div className="detail-tag">{currentPost?.tag}</div>
       </div>
-      <div className="detail-content">
-        占位符内容，请替换为实际内容。占位符内容，请替换为实际内容。占位符内容，请替换为实际内容。占位符内容，请替换为实际内容。
-      </div>
+      <div className="detail-content">{currentPost?.content}</div>
       <div className="detail-poster">
-        <img className="poster-icon" src={user} alt="发布者头像" />
-        <div className="poster-name">{currentUser?.nickname}</div>
-        <div className="poster-credit">{currentUser?.credit}分</div>
-        <div className="poster-time">05-05-10:00</div>
+        <img
+          className="poster-icon"
+          src={detailUser?.avatar}
+          alt="发布者头像"
+        />
+        <div className="poster-name">{detailUser?.nickname}</div>
+        <div className="poster-credit">{detailUser?.credit}分</div>
+        <div className="poster-time">{formatDateTime(currentPost?.created_at)}</div>
       </div>
       <div className="detail-alternative">
         {currentAlter === "user" && (
           <div className="alter-user">
             <div className="user-like">
               <img className="like-icon" src={like} alt="喜欢" />
-              <div className="like-text">12</div>
+              <div className="like-text">{currentPost?.likes}</div>
             </div>
-            <div className="user-dislike" onClick={() => setCurrentAlter("appeal")}>
+            <div
+              className="user-dislike"
+              onClick={() => setCurrentAlter("appeal")}
+            >
               <img className="dislike-icon" src={dislike} alt="不喜欢" />
-              <div className="dislike-text">11</div>
+              <div className="dislike-text">{currentPost?.complaints}</div>
             </div>
           </div>
         )}
         {currentAlter === "appeal" && (
           <div className="alter-appeal">
-            <img className="appeal-cancel" src={close} alt="取消" onClick={() => setCurrentAlter("user")}></img>
-            <textarea className="appeal-area">
-            </textarea>
+            <img
+              className="appeal-cancel"
+              src={close}
+              alt="取消"
+              onClick={() => setCurrentAlter("user")}
+            ></img>
+            <textarea
+              className="appeal-area"
+              placeholder="请写下您的反馈..."
+            ></textarea>
             <div className="appeal-control">
               <input className="appeal-img" type="file" id="file" />
               <button className="appeal-submit">提交举报</button>
@@ -177,11 +204,11 @@ const Detail = () => {
           <div className="alter-manage">
             <div className="manage-like">
               <img className="like-icon" src={like} alt="喜欢" />
-              <div className="like-text">12</div>
+              <div className="like-text">{currentPost?.likes}</div>
             </div>
             <div className="manage-dislike">
               <img className="dislike-icon" src={dislike} alt="不喜欢" />
-              <div className="dislike-text">11</div>
+              <div className="dislike-text">{currentPost?.complaints}</div>
             </div>
             <img className="manage-drop" src={drop} alt="删除" />
           </div>

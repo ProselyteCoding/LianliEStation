@@ -821,7 +821,7 @@ GET /api/users/userInfo/123
 {
   "qq_id": "123456789",
   "credit": 500,
-  "avatar": "/uploads/avatar123.jpg"，
+  "avatar": "/uploads/avatar123.jpg",
   "nickname": "3333333"
 }
 ```

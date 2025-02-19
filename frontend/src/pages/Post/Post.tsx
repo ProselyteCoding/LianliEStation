@@ -147,6 +147,7 @@ const Post = () => {
     <div className="post-container">
       <Navbar title="发布助手小e" backActive={true} backPath="market" />
       <div className="dialog-container" ref={containerRef}>
+        {dialogHistory.length === 0?<div className="dialog-empty">请发布商品</div>:null}
         {dialogHistory.map((dialog, index) => (
           <div
             key={index}
