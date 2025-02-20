@@ -11,16 +11,9 @@ let router = Router();
 dotenv.config();
 const SECRET_KEY = process.env.SECRET_KEY;
 
-// 获取帖子列表
+// 获取帖子列表(仅测试用)
 router.get("/", async (req, res) => {
   try {
-    // 尝试从缓存获取数据
-    const cachedPosts = await cacheService.getPostList();
-    if (cachedPosts) {
-      return res.status(200).json(cachedPosts);
-    }
-
-    // 缓存未命中，从数据库获取
     const [rows] = await db.query("SELECT * FROM posts WHERE status != 'deleted'");
 
     if (rows.length === 0) {
@@ -28,7 +21,11 @@ router.get("/", async (req, res) => {
     }
 
     const postIds = rows.map((post) => post.id);
-    const [imageRows] = await db.query("SELECT post_id, image_url FROM post_images WHERE post_id IN (?)", [postIds]);
+    let imageRows = [];
+
+    if (postIds.length > 0) {
+      [imageRows] = await db.query("SELECT post_id, image_url FROM post_images WHERE post_id IN (?)", [postIds]);
+    }
 
     const imagesMap = imageRows.reduce((map, row) => {
       if (!map[row.post_id]) {
@@ -43,13 +40,10 @@ router.get("/", async (req, res) => {
       images: imagesMap[post.id] || [],
     }));
 
-    // 设置缓存
-    await cacheService.setPostList(postsWithImages);
-
-    res.status(200).json(postsWithImages);
+    return res.status(200).json(postsWithImages);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "服务器错误" });
+    return res.status(500).json({ message: "服务器错误" });
   }
 });
 
@@ -103,9 +97,6 @@ router.post("/publish", upload.array("images", 5), async (req, res) => {
       const imagePromises = imageUrls.map((url) => db.query("INSERT INTO post_images (post_id, image_url) VALUES (?, ?)", [postId, url]));
       await Promise.all(imagePromises); // 等待所有图片保存完成
     }
-
-    // 清除缓存
-    await cacheService.clearAllRelatedCache();
 
     // 将新帖子数据存入缓存
     const postData = {
@@ -167,7 +158,7 @@ router.delete("/:post_id", async (req, res) => {
     await db.query("UPDATE posts SET status = 'deleted' WHERE id = ?", [post_id]);
 
     // 缓存更新:
-    await cacheService.handlePostDeletion(post_id, author_id);
+    await cacheService.handlePostDeletion(post_id);
 
     return res.status(200).json({ message: "帖子已标记为删除" });
   } catch (err) {
@@ -194,7 +185,7 @@ router.get("/byID/:post_id", async (req, res) => {
       return res.status(200).json(cachedPost);
     }
 
-    // 缓存未命中，从数据库获取
+    // 从数据库获取
     const [rows] = await db.query("SELECT * FROM posts WHERE id = ? AND status != 'deleted'", [post_id]);
 
     if (rows.length === 0) {
@@ -235,11 +226,13 @@ router.get("/search", async (req, res) => {
       limit = 10,
     } = req.query;
 
-    // 尝试从缓存获取数据
-    if (!keyword && !title && !status && !campus_id && !post_type && !tag && !min_price && !max_price) {
-      const cachedResults = await cacheService.getPaginatedPosts(page, limit);
-      if (cachedResults) {
-        return res.status(200).json(cachedResults);
+    // 只在无筛选条件时，尝试从缓存获取数据
+    const hasFilter = keyword || title || status || campus_id || post_type || tag || min_price || max_price;
+
+    if (!hasFilter) {
+      const cachedPosts = await cacheService.getPaginatedPosts(page, limit);
+      if (cachedPosts) {
+        return res.status(200).json(cachedPosts);
       }
     }
 
@@ -361,8 +354,8 @@ router.get("/search", async (req, res) => {
       posts: postsWithImages,
     };
 
-    // 仅在没有关键字搜索时设置缓存
-    if (!keyword && !title && !status && !campus_id && !post_type && !tag && !min_price && !max_price) {
+    // 只缓存无筛选条件的结果
+    if (!hasFilter) {
       await cacheService.setPaginatedPosts(page, limit, result);
     }
 
@@ -450,24 +443,12 @@ router.put("/:post_id", upload.array("images", 5), async (req, res) => {
 
     await db.query(updateQuery, [title, content, price, campus_id, status, post_type, tag, post_id]);
 
-    // 更新成功后删除缓存
-    await cacheService.clearAllRelatedCache(post_id, author_id);
-
     // 更新缓存
-    await cacheService.handlePostUpdate(
-      post_id,
-      {
-        title,
-        content,
-        price,
-        campus_id,
-        status,
-        post_type,
-        tag,
-        images: files ? files.map((file) => `/uploads/${file.filename}`) : undefined,
-      },
-      author_id
-    );
+    await cacheService.handlePostUpdate(post_id, {
+      ...req.body,
+      images: files ? files.map((file) => `/uploads/${file.filename}`) : [],
+    });
+
     // 返回成功信息
     res.status(200).json({ message: "帖子更新成功" });
   } catch (err) {

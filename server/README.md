@@ -48,6 +48,8 @@ REDIS_PASSWORD=
 
 在启动后端服务后，使用`node redis.test.js`即可测试该服务是否正确连接至后端
 
+详细`Redis`设计请参看`/services/README.md`
+
 ## 临时管理员账户
 
 ```json
