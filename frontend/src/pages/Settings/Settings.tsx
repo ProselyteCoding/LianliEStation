@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import "./Settings.scss";
-import { useAuthStore } from "../../store";
+import { useAuthStore, useUserStore } from "../../store";
 import Navbar from "../../components/Navbar/Navbar";
 import logoutIcon from "../../assets/logout.png"
 import right from "../../assets/right.png"
@@ -10,6 +10,7 @@ const Settings = () => {
   const navigate = useNavigate();
   // 调用 useAuthStore 来获取 logout 方法
   const logout = useAuthStore((state) => state.logout);
+  const currentUser = useUserStore((state) => state.currentUser);
 
   const handleLogout = () => {
     logout();
@@ -21,9 +22,11 @@ const Settings = () => {
       <Navbar title="设置" backActive={true} backPath="user" />
         <div className="settings-item" >
           <div className="item-text">用户名</div>
+          <div className="item-value">{currentUser?.username}</div>
         </div>
         <div className="settings-item" >
           <div className="item-text">邮箱</div>
+          <div className="item-value">{currentUser?.email}</div>
         </div>
         <div className="settings-item" style={{ marginTop: "3px" }} onClick={() => navigate('/reset/nickname')}>
           <div className="item-text">昵称</div><img src={right} alt="详情" className="right-icon"></img>

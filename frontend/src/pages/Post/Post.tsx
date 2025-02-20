@@ -1,6 +1,7 @@
 import axios from "axios";
 import { useRef, useState, useEffect } from "react"; // 导入useEffect
 import { useNavigate } from "react-router-dom";
+import { useUserStore } from "../../store";
 import Cookies from "js-cookie";
 import "./Post.scss";
 import Navbar from "../../components/Navbar/Navbar";
@@ -28,6 +29,43 @@ const Post = () => {
   const [previousText, setPreviousText] = useState<string>("");
 
   const token = Cookies.get("auth-token");
+
+  const { userTheme } = useUserStore();
+
+  // 将图片转换为Base64并存储到localStorage  
+    const storeImagesInLocalStorage = async () => {  
+      const backgroundUrl = userTheme.background_url ? `http://localhost:5000${userTheme.background_url}` : null;  
+  
+      if (backgroundUrl) {  
+        const backgroundBase64: any = await fetchImageAsBase64(backgroundUrl);  
+        localStorage.setItem("userBackground", backgroundBase64);  
+      }  
+    };  
+    
+    // 从URL获取Base64  
+    const fetchImageAsBase64 = async (url: string) => {  
+      const response = await fetch(url);  
+      const blob = await response.blob();  
+      return new Promise((resolve) => {  
+        const reader = new FileReader();  
+        reader.onloadend = () => resolve(reader.result); // 读取完成后返回Base64字符串  
+        reader.readAsDataURL(blob); // 转换为Base64  
+      });  
+    };  
+  
+    useEffect(() => {  
+      // 存储请求到的图片  
+      if (!localStorage.getItem("userBackground"))
+      storeImagesInLocalStorage();  
+    }, [token]);  
+  
+    // 从localStorage获取图片的函数  
+    const getImageFromLocalStorage = (key: string) => {  
+      return localStorage.getItem(key) || null; // 如果不存在返回 null  
+    };  
+  
+    // 获取发布页背景图片  
+    const backgroundSrc = getImageFromLocalStorage("userBackground") || undefined;  
 
   // 设置对话框自适应高度
   const handleHeight = () => {
@@ -147,7 +185,16 @@ const Post = () => {
     <div className="post-container">
       <Navbar title="发布助手小e" backActive={true} backPath="market" />
       <div className="dialog-container" ref={containerRef}>
-        {dialogHistory.length === 0?<div className="dialog-empty">请发布商品</div>:null}
+        {userTheme.background_url ? (
+          <img
+            src={backgroundSrc}
+            alt="背景"
+            className="dialog-bg"
+          ></img>
+        ) : null}
+        {dialogHistory.length === 0 ? (
+          <div className="dialog-empty">请发布商品</div>
+        ) : null}
         {dialogHistory.map((dialog, index) => (
           <div
             key={index}

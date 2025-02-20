@@ -4,7 +4,6 @@ import { useParams, Navigate } from "react-router-dom";
 import { useUserStore } from "../../store";
 import { useState } from "react";
 import Forget from "../../pages/Forget/Forget";
-import logo from "../../assets/logo.png";
 
 interface Profile {
   nickname: string | undefined;
@@ -14,7 +13,7 @@ interface Profile {
   theme_id: number | undefined;
   background_url: File | undefined; // 修改为 File 类型
   banner_url: File | undefined; // 修改为 File 类型
-}
+} // 其中主题中的三张图片是指当前临时图片，类型为 File 而不是 string ，不从 userTheme 中调用
 
 const Reset = () => {
   const {
@@ -30,10 +29,10 @@ const Reset = () => {
     nickname: currentUser?.nickname || "",
     campus_id: currentUser?.campus_id || 1,
     qq_id: currentUser?.qq || "",
-    avatar: userTheme.avatar,
+    avatar: undefined,
     theme_id: userTheme.theme_id,
-    background_url: userTheme.background_url,
-    banner_url: userTheme.banner_url,
+    background_url: undefined,
+    banner_url: undefined,
   };
   const [profile, setProfile] = useState<Profile>(defaultProfile);
   const { type } = useParams();
@@ -161,6 +160,7 @@ const Reset = () => {
             type="text"
             placeholder="请输入主题 ID"
             onChange={handleChange("theme_id")}
+            className="reset-text"
           />
           <button className="text-submit" onClick={handleThemeSubmit}>
             保存

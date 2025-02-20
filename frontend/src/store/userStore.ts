@@ -38,9 +38,9 @@ interface IDSearchedUser {
 // 用户的主题信息
 interface UserTheme {
   theme_id: number;
-  background_url: File | undefined;
-  banner_url: File | undefined;
-  avatar: File | undefined;
+  background_url: string | undefined;
+  banner_url: string | undefined;
+  avatar: string | undefined;
 }
 
 interface UserState {

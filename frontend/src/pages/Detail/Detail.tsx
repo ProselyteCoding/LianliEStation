@@ -10,14 +10,11 @@ import close from "../../assets/close.png";
 import drop from "../../assets/drop.png";
 import share from "../../assets/share.png";
 import left from "../../assets/left.png";
-import img1 from "../../assets/background1.jpg";
-import img2 from "../../assets/background2.jpg";
-import img3 from "../../assets/background3.jpg";
 
 const Detail = () => {
   const param = useParams();
   const ID = param.postId;
-  const images = [img1, img2, img3];
+  const [images, setImages] = useState<string[]>([]); // 图片数组
   const { fetchByID, detailUser } = useUserStore();
   const { fetchPost, currentPost } = usePostStore();
   const [qq, setQq] = useState(""); // 初始化 qq
@@ -32,6 +29,7 @@ const Detail = () => {
     const fetchData = async () => {
       const numericID = Number(ID);
       await fetchPost(numericID);
+      setImages(currentPost?.images || []);
       const userId = currentPost?.author_id || 0; // 确保在获取到 currentPost 后再获取用户信息
       await fetchByID(userId);
       setQq(detailUser?.qq || ""); // 在获取到 detailUser 后设置 qq
@@ -100,6 +98,26 @@ const Detail = () => {
     return `${month}-${day} ${hour}:${minute}`; // 返回格式化后的字符串
   }; 
 
+  // 
+  const handleCampusID = (campus_id: number) => {
+    if (campus_id === 1) 
+    {
+      return "凌水主校区";
+    }
+    else if (campus_id === 2) 
+    {
+      return "开发区校区";
+    }
+    else if (campus_id === 3)
+    {
+      return "盘锦校区";
+    }
+    else 
+    {
+      return "校区获取错误";
+    }
+  }
+
   return (
     <div className="detail-container">
       <div className="detail-navbar">
@@ -154,6 +172,7 @@ const Detail = () => {
           {currentPost?.post_type === "sell" ? "出" : "收"}
         </div>
         <div className="detail-tag">{currentPost?.tag}</div>
+        <div className="detail-campus">{handleCampusID(currentPost?.campus_id || 1)}</div>
       </div>
       <div className="detail-content">{currentPost?.content}</div>
       <div className="detail-poster">

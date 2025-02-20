@@ -75,7 +75,6 @@
     height: 23px;
     justify-content: center;
     align-items: center;
-    margin-left: -140px;
     margin-top: 3px;
     display: flex;
     flex-direction: row;
@@ -103,6 +102,16 @@
       align-self: center;
       justify-content: center;
       width: 80px;
+    }
+    .detail-campus {
+      margin-left: 10px;
+      background: #579fb1;
+      border-radius: 5px;
+      color: white;
+      display: flex;
+      align-self: center;
+      justify-content: center;
+      width: 100px;
     }
   }
   .detail-content {

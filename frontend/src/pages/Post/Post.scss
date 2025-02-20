@@ -8,6 +8,14 @@
         flex-direction: column;
         width: 100%;
         height: 500px;
+        .dialog-bg {
+            width: 100%;
+            height: 550px;
+            position: absolute;
+            z-index: -1;
+            opacity: 0.8;
+            object-fit: cover;
+        }
         .dialog-empty {
             display: flex;
             flex-direction: column;

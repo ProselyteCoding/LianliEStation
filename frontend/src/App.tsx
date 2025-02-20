@@ -61,7 +61,7 @@ const App: React.FC = () => {
       getTheme(); // 初始化 userTheme
       // console.log("已登录，获取用户信息");
     }
-  }, [isAuthenticated, fetchUserProfile, getTheme]);
+  }, [isAuthenticated]);
 
   const router = createBrowserRouter([
     {
