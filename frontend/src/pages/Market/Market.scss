@@ -161,8 +161,8 @@ $shadow-color: rgba(0, 0, 0, 0.1);
             .market-more{
                 display: flex;
                 position: absolute;
+                z-index: 100;
                 left: 0;
-                height: 78vh;
                 background-color: #bfbfbf; /* 更柔和的背景色 */
                 border-radius: 10px; /* 更圆滑的边角 */
                 border: 1px solid #e0e0e0; /* 使用更柔和的灰色边框 */
@@ -220,8 +220,9 @@ $shadow-color: rgba(0, 0, 0, 0.1);
 
                     .location-list{
                         display: flex;
-                        flex-direction: column;
                         justify-content: center;
+                        width: 200px;
+                        flex-wrap: wrap;
                         gap: 15px;
                         .item{
                             display: flex;
@@ -265,6 +266,7 @@ $shadow-color: rgba(0, 0, 0, 0.1);
                     display: flex;
                     margin-left: 5px;
                     flex-direction: column;
+                    width: 200px;
                     .sort-title{  
                         font-size: 18px;
                         font-weight: bold;
@@ -306,16 +308,19 @@ $shadow-color: rgba(0, 0, 0, 0.1);
                 flex-wrap: wrap;
                 overflow-y: scroll;
                 justify-content: space-between;
-                margin: 0 20px;
+                margin: 0 15px;
                 height: 70vh;
                 .commodity-item{
                     display: flex;
                     flex-direction: column;
                     border: 1px solid #acacac;
-                    width: 150px;
-                    height: 150px;
+                    width: 155px;
+                    height: 160px;
                     margin: 2px;
                     border-radius: 5px;
+                    padding: auto;
+                    overflow: hidden;
+                    flex-shrink: 1;
 
                     .commodity-img{
                         display: flex;
@@ -350,6 +355,13 @@ $shadow-color: rgba(0, 0, 0, 0.1);
                             border: 1px solid #c7c7c7;
                             border-radius: 5px;
                             padding: 2px;
+                            font-size: 15px;
+                        }
+
+                        .commodity-price{
+                            font-size: 15px;
+                            font-weight: bold;
+                            color: $hover-color;
                         }
                     }
 

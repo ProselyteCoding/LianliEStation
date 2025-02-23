@@ -243,7 +243,7 @@ const Template = () => {
     }).then(() => {
       handleSuccess()
       console.log('发布成功')
-      navigate('/market')
+      window.location.href = '/target-page'
   })
   .catch((error) => {
       console.log(error)
@@ -297,10 +297,12 @@ const Template = () => {
             <div className='dropdown-category'>
               <button className="dropdown-button">{`${tag}`}</button>
                 <div className="dropdown-menu">
-                  <div className="dropdown-item" onClick={(e) => setTag(e)}>跑腿打卡</div>
+                  <div className="dropdown-item" onClick={(e) => setTag(e)}>跑腿代课</div>
                   <div className="dropdown-item" onClick={(e) => setTag(e)}>数码电子</div>
+                  <div className="dropdown-item" onClick={(e) => setTag(e)}>生活用品</div>
                   <div className="dropdown-item" onClick={(e) => setTag(e)}>拼单组队</div>
-                  <div className="dropdown-item" onClick={(e) => setTag(e)}>资料作业</div>
+                  <div className="dropdown-item" onClick={(e) => setTag(e)}>学业资料</div>
+                  <div className="dropdown-item" onClick={(e) => setTag(e)}>捞人询问</div>
                   <div className="dropdown-item" onClick={(e) => setTag(e)}>其他</div>
                 </div>
             </div>
@@ -362,9 +364,6 @@ const Template = () => {
     <div className='submit'>
       <button onClick={() => handlePublish()}>发布</button>
     </div>
-       <div className='tabbar'>
-        <Tabbar />
-      </div>
     </div>
   )
 }

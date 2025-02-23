@@ -16,7 +16,6 @@ interface Post {
     campus_id: number;
     images:string[];
   }
-
   interface FavoriteStoreState {
     posts: Post[];
     getPosts: () => Promise<void>;

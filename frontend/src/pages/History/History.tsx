@@ -14,10 +14,15 @@ const History = () => {
   const [isVisible, setIsVisible] = useState(false)
   const scrollRef=useRef<HTMLDivElement|null>(null)
   const setPage=useHistoryStore((state)=>state.setPage)
+  const clear=useHistoryStore((state)=>state.clear)
 
   useEffect(() => {
     getPosts()
   }, [])
+
+  window.addEventListener('beforeunload', () => {
+    clear();
+  });
 
   const handleScroll = () => {
     if (scrollRef.current) {
@@ -64,7 +69,7 @@ const History = () => {
                 }
 
                 <div className='commodity-img'>
-                <img src={takePlace} alt="" />
+                <img src={post.images[0]?`http://localhost:5000${post.images[0]}`:takePlace} alt="" />
                 </div>
                 <div className="commodity-description">
                   <div className='commodity-title'>

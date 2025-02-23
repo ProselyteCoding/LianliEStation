@@ -99,11 +99,13 @@ $shadow-color: rgba(0, 0, 0, 0.1);
                             font-size: 14px;
                             display: flex;
                             margin-left: 10px;
+                            overflow: hidden;
+                            height: 35px;
+                            text-overflow: ellipsis;
                         }
         
                         .commodity-bottom{
                             display: flex;
-                            justify-content: space-between;
                             align-items: end;
                             padding: 0 10px;
                             width: 100%;
@@ -112,6 +114,7 @@ $shadow-color: rgba(0, 0, 0, 0.1);
                                 font-size: 16px;
                                 font-weight: 600;
                                 color: $hover-color;
+                                margin-right: 100px;
                             }
 
                             .commodity-tag{

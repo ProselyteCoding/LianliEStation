@@ -75,12 +75,13 @@ $shadow-color: rgba(0, 0, 0, 0.1);
             flex-direction: column;
             gap: 6px;
             margin-top: 10px;
+            width: 250px;
 
             input{
                 border: 1px solid #ccc;
                 height: 20px;
-                width: 250px;
                 border-radius: 10px;
+                width: 250px;
             }
         }
 
@@ -106,32 +107,33 @@ $shadow-color: rgba(0, 0, 0, 0.1);
         .sort{
             display: flex;
             flex-direction: column;
-            width: 250px;
             gap: 6px;
+            width: 250px;
+
             // 下拉菜单基础样式
             .dropdown {
                 position: relative;
                 display: flex;
-                gap: 0 30px;
+                gap: 0 20px;
             
                 // 菜单按钮样式
                 .dropdown-sellOrBuy{
                     .dropdown-button{
-                        width: 80px;
+                        width: 72px;
                         height: 25px;
                     }   
                 }
 
                 .dropdown-category{
                     .dropdown-button{
-                        width: 80px;
+                        width: 72px;
                         height: 25px;
                     }
                 }
 
                 .dropdown-campus{
                     .dropdown-button{
-                        width: 80px;
+                        width: 72px;
                         height: 25px;
                     }   
                 }

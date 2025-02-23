@@ -24,6 +24,7 @@ interface HistoryStoreState{
     removePost:(id:number)=>void;
     setPage:()=>void;
     page:number;
+    clear:()=>void;
 }
 
 const token=Cookies.get("auth-token")
@@ -37,6 +38,9 @@ const useHistoryStore=create<HistoryStoreState>()(
             page:1,
             setPage: () => set((preState)=>({
                 page: preState.page + 1
+              })),
+              clear:()=>set(()=>({
+                posts:[]
               })),
             getPosts:async ()=>{
                 try {
@@ -71,7 +75,7 @@ const useHistoryStore=create<HistoryStoreState>()(
             },
 
             removePost:(id)=>{
-                axios.delete(`http://localhost:5000/api/posts/:${id}`,
+                axios.delete(`http://localhost:5000/api/posts/${id}`,
                 {
                     headers:{
                         Authorization:`Bearer ${token}`
