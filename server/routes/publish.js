@@ -5,6 +5,7 @@ import jwt from "jsonwebtoken";
 import OpenAI from "openai";
 import db from "../db.js";
 import upload from "../middlewares/uploadImg.js";
+import { publishLimiter } from "../middlewares/limiter.js"; // 引入发布限流中间件
 
 let router = Router();
 
@@ -13,7 +14,7 @@ const SECRET_KEY = process.env.SECRET_KEY;
 const API_KEY = process.env.API_KEY;
 
 // 发布商品
-router.post("/goods", upload.array("images", 3), async (req, res) => {
+router.post("/goods", publishLimiter, upload.array("images", 3), async (req, res) => {
   const token = req.headers.authorization?.split(" ")[1];
   const files = req.files;
 
@@ -146,7 +147,7 @@ router.post("/template", async (req, res) => {
 });
 
 // 发布校园墙帖子
-router.post("/posts", upload.array("images", 5), async (req, res) => {
+router.post("/posts", publishLimiter, upload.array("images", 5), async (req, res) => {
   const token = req.headers.authorization?.split(" ")[1];
   const files = req.files;
 
