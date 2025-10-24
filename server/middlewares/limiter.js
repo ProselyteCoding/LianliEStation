@@ -77,7 +77,7 @@ export const appealLimiter = rateLimit({
   max: 5, // 每个 IP 最多允许 5 次申诉请求
   skipFailedRequests: true, // 仅对成功请求计数
   message: { message: "今日申诉次数已达上限，请明天再试" },
-  keyGenerator: getClientIP, // 使用自定义IP获取函数
+  keyGenerator: getClientIP,
 });
 
 // 评论发布限流，防止垃圾评论
