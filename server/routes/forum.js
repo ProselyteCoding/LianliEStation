@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import fs from "fs";
 import upload from "../middlewares/uploadImg.js"; // 引入图片上传中间件
+import { commentLimiter } from "../middlewares/limiter.js"; // 引入评论限流中间件
 
 let router = Router();
 dotenv.config();
@@ -45,7 +46,7 @@ router.delete("/posts/:post_id", async (req, res) => {
 
 
 // 处理帖子互动
-router.post("/posts/interact/:post_id", async (req, res) => {
+router.post("/posts/interact/:post_id", commentLimiter, async (req, res) => {
   const { post_id } = req.params;
   const { action, content, parent_id } = req.body;
   const token = req.headers.authorization?.split(" ")[1];
