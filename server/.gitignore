@@ -14,5 +14,3 @@ public/
 .env.development
 .env.test
 .env.production
-
-.DS_Store
