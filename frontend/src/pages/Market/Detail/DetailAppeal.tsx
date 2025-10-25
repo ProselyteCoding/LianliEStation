@@ -4,9 +4,9 @@ import { Image, Upload } from "antd";
 import type { GetProp, UploadFile, UploadProps } from "antd";
 import { message } from "antd";
 import "./DetailAppeal.scss";
+import "../../../Icon.scss";
 import { useMainStore, useUserStore } from "../../../store";
 import { useParams, useNavigate } from "react-router-dom";
-import left from "../../../assets/left-black.svg";
 
 type FileType = Parameters<GetProp<UploadProps, "beforeUpload">>[0];
 
@@ -82,12 +82,10 @@ const DetailAppeal = () => {
 
   return (
     <div className="appeal-container">
-      <img
-        className="appeal-cancel"
-        src={left}
-        alt="取消"
+      <i
+        className="appeal-cancel iconfont icon-left"
         onClick={() => navigate(`/market/${Number(id)}`)}
-      ></img>
+      ></i>
       <div className="appeal-inform">
         很抱歉您遇到不愉快的商品体验，请详细描述您遇到的问题并建议上传相应的照片/截图作为证据，我们将为您维权！
       </div>

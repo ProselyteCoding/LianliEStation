@@ -90,7 +90,6 @@ $bg: #ededed;
       border-top: px2rem(2) solid $bg;
       
       .item-icon {
-        @include size(24);
         @include margin-left(15);
         margin-right: px2rem(10);
       }
@@ -102,7 +101,6 @@ $bg: #ededed;
       }
       
       .right-icon {
-        @include size(24);
         margin-right: px2rem(10);
         margin-left: auto;  // 推到右边
         flex-shrink: 0;  // 防止被压缩

@@ -5,17 +5,7 @@ import { timeFormat } from "../../../utils/formatters";
 import { getCampusName } from "../../../utils/formatters";
 import { message, Image, Carousel } from "antd";
 import "./Detail.scss";
-import copy from "../../../assets/copy-black.svg";
-import star from "../../../assets/favorites-black.svg";
-import like_true from "../../../assets/like-true.svg";
-import like_false from "../../../assets/like-false.svg";
-import dislike_true from "../../../assets/dislike-true.svg";
-import dislike_false from "../../../assets/dislike-false.svg";
-//import star from "../../../assets/star.svg";
-import stared from "../../../assets/stared.svg";
-import drop from "../../../assets/drop-black.svg";
-import share from "../../../assets/share-black.svg";
-import left from "../../../assets/left-black.svg";
+import "../../../Icon.scss";
 import takePlace from "../../../assets/takePlace.png";
 
 interface Goods {
@@ -239,18 +229,14 @@ const Detail = () => {
   return (
     <div className="detail-container">
       <div className="detail-navbar">
-        <img
-          className="navbar-icon"
-          src={left}
-          alt="返回"
+        <i
+          className="navbar-icon iconfont icon-left"
           onClick={() => navigate("/market")}
-        />
-        <img
-          className="navbar-icon"
-          src={share}
-          alt="分享"
+        ></i>
+        <i
+          className="navbar-icon iconfont icon-share"
           onClick={handleShare}
-        />
+        ></i>
       </div>
       <div className="detail-slider">
         <Image.PreviewGroup>
@@ -307,20 +293,16 @@ const Detail = () => {
         {isMine === "user" && (
           <div className="alter-user">
             <div className="user-like">
-              <img
-                className="like-icon"
-                src={isLiked ? like_true : like_false}
-                alt="喜欢"
+              <i
+                className={`like-icon iconfont ${isLiked ? 'icon-liked' : 'icon-like'}`}
                 onClick={handleLike}
-              />
+              ></i>
               <div className="like-text">{currentGoods?.likes}</div>
             </div>
             <div className="user-dislike" onClick={() => handleDislike()}>
-              <img
-                className="dislike-icon"
-                src={isDisliked ? dislike_true : dislike_false}
-                alt="不喜欢"
-              />
+              <i
+                className={`dislike-icon iconfont ${isDisliked ? 'icon-disliked' : 'icon-dislike'}`}
+              ></i>
               <div className="dislike-text">{currentGoods?.complaints}</div>
             </div>
           </div>
@@ -328,32 +310,28 @@ const Detail = () => {
         {isMine === "manage" && (
           <div className="alter-manage">
             <div className="manage-like" onClick={handleLike}>
-              <img
-                className="like-icon"
-                src={isLiked ? like_true : like_false}
-                alt="喜欢"
-              />
+              <i
+                className={`like-icon iconfont ${isLiked ? 'icon-like-true' : 'icon-like-false'}`}
+              ></i>
               <div className="like-text">{currentGoods?.likes}</div>
             </div>
             <div className="manage-dislike" onClick={handleDislike}>
-              <img
-                className="dislike-icon"
-                src={isDisliked ? dislike_true : dislike_false}
-                alt="不喜欢"
-              />
+              <i
+                className={`dislike-icon iconfont ${isDisliked ? 'icon-dislike-true' : 'icon-dislike-false'}`}
+              ></i>
               <div className="dislike-text">{currentGoods?.complaints}</div>
             </div>
-            <img className="manage-drop" src={drop} alt="删除" />
+            <i className="manage-drop iconfont icon-drop"></i>
           </div>
         )}
       </div>
       <div className="detail-btn">
         <div className="star-btn" onClick={handleStar}>
-          <img className="starBtn-icon" src={isStared ? stared : star} alt="收藏" />
+          <i className={`starBtn-icon iconfont ${isStared ? 'icon-favorited' : 'icon-favorite'}`}></i>
           <div className="starBtn-text">加入收藏</div>
         </div>
         <div className="contact-btn" onClick={handleCopy}>
-          <img className="qqBtn-icon" src={copy} alt="发布者QQ号" />
+          <i className="qqBtn-icon iconfont icon-copy"></i>
           <div className="qqBtn-text">立即联系！</div>
         </div>
       </div>

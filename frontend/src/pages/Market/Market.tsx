@@ -1,13 +1,12 @@
 import { useRef, useEffect, useState, useMemo } from "react";
 import { Carousel, Image, Skeleton, Empty } from "antd";
 import "./Market.scss";
+import "../../Icon.scss";
 import Tabbar from "../../components/Tabbar/Tabbar";
 import MarketBanner from "../../assets/banner2.png";
 import ADInviting from "../../assets/ad3.3-logo.png";
 import logo from "../../assets/logo.png";
-import search from "../../assets/search-white.svg";
 import takePlace from "../../assets/takePlace.png";
-import add from "../../assets/add-white.svg"
 import { useMainStore } from "../../store";
 import { useNavigate } from "react-router-dom";
 
@@ -197,7 +196,7 @@ const Market = () => {
           onChange={handleChange}
         />
         <div className="icon" onClick={handleSearch}>
-          <img src={search} alt="search" />
+          <i className="iconfont icon-search"></i>
         </div>
       </div>
 
@@ -674,7 +673,7 @@ const Market = () => {
 
       <div className="market-tabbar">
         <div className="custom-float-button" onClick={() => navigate("/publish/market-publish-choice")}>
-          <img className="plus-icon" src={add} alt="发布商品"></img>
+          <i className="iconfont icon-add plus-icon"></i>
         </div>
         <Tabbar initialIndex={0} />
       </div>

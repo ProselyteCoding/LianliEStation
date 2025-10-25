@@ -4,13 +4,11 @@ import {
   Empty,
 } from "antd";
 import "./Forum.scss";
+import "../../Icon.scss";
 import { useMainStore } from "../../store";
 import { useNavigate } from "react-router-dom";
 import Tabbar from "../../components/Tabbar/Tabbar";
-import Like from '../../assets/like.svg';
 import logo from "../../assets/logo.png";
-import search from "../../assets/search-white.svg";
-import add from "../../assets/add-white.svg"
 import ForumBanner from "../../assets/banner2.png";
 import ADInviting from "../../assets/ad3.3-logo.png";
 
@@ -105,7 +103,7 @@ const Forum = () => {
           onChange={handleChange}
         />
         <div className="icon" onClick={handleSearch}>
-          <img src={search} alt="search" />
+          <i className="iconfont icon-search"></i>
         </div>
       </div>
 
@@ -481,7 +479,7 @@ const Forum = () => {
 
                 <div className="post-footer">
                   <div className="stat-item">
-                    <img src={Like} alt="likes" />
+                    <i className="iconfont icon-like2"></i>
                     <span>{post.likes}</span>
                   </div>
                   <div className="stat-item">
@@ -517,7 +515,7 @@ const Forum = () => {
 
       <div className="forum-tabbar">
         <div className="custom-float-button" onClick={() => navigate(`/publish/forum-publish`)}>
-          <img className="plus-icon" src={add} alt="发布帖子"></img>
+          <i className="iconfont icon-add plus-icon"></i>
         </div>
         <Tabbar initialIndex={1} />
       </div>

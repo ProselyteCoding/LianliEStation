@@ -1,12 +1,8 @@
 import Tabbar from "../../components/Tabbar/Tabbar";
 import "./User.scss";
+import "../../Icon.scss"
 import { useUserStore } from "../../store";
 import { useNavigate, useLocation } from "react-router-dom";
-import stars from "../../assets/favorites-black.svg";
-import history from "../../assets/history-black.svg";
-import messages from "../../assets/messages-unread.svg";
-import settings from "../../assets/settings-black.svg";
-import right from "../../assets/right-black.svg";
 import avatarDefault from "../../assets/logo.png";
 import bannerDefault from "../../assets/background-wide.jpg";
 import { useState, useEffect } from "react";
@@ -234,26 +230,26 @@ const User = () => {
       </div>
       <div className="user-settings">
         <div className="user-item" onClick={() => navigate("/user/favorites")}>
-          <img src={stars} alt="收藏" className="item-icon" />
+          <i className="iconfont icon-favorites item-icon"></i>
           <div className="item-text">收藏</div>
-          <img src={right} alt="右箭头" className="right-icon" />
+          <i className="right-icon iconfont icon-right" />
         </div>
         <div className="user-item" onClick={() => navigate("/user/history")}>
-          <img src={history} alt="历史" className="item-icon" />
+          <i className="iconfont icon-history item-icon"></i>
           <div className="item-text">历史</div>
-          <img src={right} alt="右箭头" className="right-icon" />
+          <i className="right-icon iconfont icon-right" />
         </div>
         <div className="user-item" onClick={() => navigate("/user/messages")}>
-          <img src={messages} alt="信箱" className="item-icon" />
+          <i className="iconfont icon-messages item-icon"></i>
           <div className="item-text">信箱</div>
-          <img src={right} alt="右箭头" className="right-icon" />
+          <i className="right-icon iconfont icon-right" />
         </div>
       </div>
       <div className="user-settings" onClick={() => navigate("/user/settings")}>
         <div className="user-item">
-          <img src={settings} alt="设置" className="item-icon" />
+          <i className="iconfont icon-settings item-icon"></i>
           <div className="item-text">设置</div>
-          <img src={right} alt="右箭头" className="right-icon" />
+          <i className="right-icon iconfont icon-right" />
         </div>
       </div>
       <Tabbar initialIndex={2} />

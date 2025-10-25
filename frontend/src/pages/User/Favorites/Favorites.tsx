@@ -2,7 +2,6 @@ import Navbar from "../../../components/Navbar/Navbar"
 import React, { useEffect, useState } from "react"
 import { useRecordStore } from "../../../store"
 import { Card, Dropdown, Empty } from "antd";
-import { AppstoreOutlined, ShoppingOutlined, FileTextOutlined, SettingOutlined } from "@ant-design/icons";
 import type { MenuProps } from "antd";
 import NoticeModal from "../../../components/NoticeModal/NoticeModal"
 import { useUserStore } from "../../../store"
@@ -42,7 +41,7 @@ const Favorites: React.FC = () => {
           商品
         </div>
       ),
-      icon: <ShoppingOutlined />,
+      icon: <i className="iconfont icon-goods"></i>,
     },
     {
       key: "2",
@@ -57,7 +56,7 @@ const Favorites: React.FC = () => {
           帖子
         </div>
       ),
-      icon: <FileTextOutlined />,
+      icon: <i className="iconfont icon-post"></i>,
     },
   ];
 
@@ -107,16 +106,14 @@ const Favorites: React.FC = () => {
           <div className="select-item">
             <Dropdown menu={{ items }}>
               <div onClick={(e) => e.preventDefault()} style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <AppstoreOutlined
-                  style={{ width: px2rem(20), height: px2rem(20), marginRight: px2rem(5) }}
-                />
+                <i className="iconfont icon-more"></i>
                 {currentType}
               </div>
             </Dropdown>
           </div>
           <div className="select-item" onClick={() => handleOnClick()}>
             <div className="select-item-btn">
-              <SettingOutlined style={{ marginRight: px2rem(5) }} />
+              <i className="iconfont icon-manage"></i>
               管理
             </div>
           </div>

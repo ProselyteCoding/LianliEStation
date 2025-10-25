@@ -91,7 +91,6 @@ $card-bg: #fff;
 
     .icon {
       display: flex;
-      @include size(30);
       margin-left: px2rem(10);
     }
   }
@@ -649,13 +648,6 @@ $card-bg: #fff;
         transform: scale(0.95);
       }
       
-      .plus-icon {
-        height: px2rem(24);
-        width: px2rem(24);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
     }
   }
   
