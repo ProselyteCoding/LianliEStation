@@ -229,41 +229,7 @@ router.get("/profile", async (req, res) => {
     const userId = decoded.user_id;
     const isAdmin = decoded.isAdmin || false;
 
-    let userRows;
-    
-    if (isAdmin) {
-      // 管理员：从 admins 表查询
-      [userRows] = await db.query(
-        "SELECT username, email FROM admins WHERE id = ?", 
-        [userId]
-      );
-      
-      if (userRows.length === 0) {
-        return res.status(404).json({ message: "管理员不存在" });
-      }
-      
-      // 管理员返回简化的信息
-      const adminData = {
-        username: userRows[0].username,
-        email: userRows[0].email,
-        isAdmin: true,
-      };
-      
-      // 记录管理员访问
-      try {
-        await db.query("INSERT INTO record_event (info, type) VALUES (?, 'visit')", [`admin_${userId}`]);
-      } catch (recordErr) {
-        console.error("记录管理员访问事件失败:", recordErr);
-      }
-      
-      return res.status(200).json(adminData);
-    }
-    
-    // 普通用户：从 users 表查询
-    [userRows] = await db.query(
-      "SELECT email, credit, theme_id, background_url, banner_url, avatar FROM users WHERE id = ?", 
-      [userId]
-    );
+    const [userRows] = await db.query("SELECT email, credit, theme_id, background_url, banner_url, avatar FROM users WHERE id = ?", [userId]);
 
     if (userRows.length === 0) {
       return res.status(404).json({ message: "用户不存在" });
