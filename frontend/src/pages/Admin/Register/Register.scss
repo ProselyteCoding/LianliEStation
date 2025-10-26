@@ -1,0 +1,92 @@
+.admin-register-container {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+
+  .admin-register-card {
+    width: 100%;
+    max-width: 450px;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+
+    .ant-card-head {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 12px 12px 0 0;
+      
+      .ant-card-head-title {
+        color: white;
+        font-size: 20px;
+        font-weight: 600;
+        text-align: center;
+        padding: 8px 0;
+      }
+    }
+
+    .ant-card-body {
+      padding: 32px;
+    }
+
+    .ant-form-item-label > label {
+      font-weight: 500;
+      color: #333;
+    }
+
+    .ant-input-affix-wrapper,
+    .ant-input {
+      border-radius: 8px;
+      
+      &:hover,
+      &:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+      }
+    }
+
+    .ant-btn-primary {
+      height: 44px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border: none;
+      font-size: 16px;
+      font-weight: 500;
+      margin-top: 8px;
+      
+      &:hover {
+        background: linear-gradient(135deg, #5568d3 0%, #653a8a 100%);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+      }
+    }
+
+    .login-link {
+      text-align: center;
+      margin-top: 16px;
+      color: #666;
+      font-size: 14px;
+
+      .ant-btn-link {
+        padding: 0;
+        height: auto;
+        color: #667eea;
+        font-weight: 500;
+        
+        &:hover {
+          color: #5568d3;
+        }
+      }
+    }
+  }
+}
+
+// 响应式适配
+@media (max-width: 576px) {
+  .admin-register-container {
+    .admin-register-card {
+      .ant-card-body {
+        padding: 24px 20px;
+      }
+    }
+  }
+}

@@ -77,6 +77,11 @@ interface UserState {
     password: string;
     username: string;
   }) => Promise<void>;
+  adminRegister: (adminData: {
+    username: string;
+    password: string;
+    email: string;
+  }) => Promise<void>;
   logout: () => void;
   deleteUser: (username: string) => Promise<void>;
   requestVerification: (email: string) => Promise<void>;
@@ -133,20 +138,33 @@ const useUserStore = create<UserState>()(
         }
       },
 
-      register: async (userData: {
-        email: string;
-        password: string;
-        username: string;
-      }) => {
-        try {
-          const res = await api.post("/api/auth/register", userData );
-          console.log(res?.data.message); // 注册成功
-        } catch (error: any) {
-          throw error;
-        }
-      },
+  register: async (userData: {
+    email: string;
+    password: string;
+    username: string;
+  }) => {
+    try {
+      const res = await api.post("/api/auth/register", userData );
+      console.log(res?.data.message); // 注册成功
+    } catch (error: any) {
+      throw error;
+    }
+  },
 
-      logout: () => {
+  // 管理员注册（后门）
+  adminRegister: async (adminData: {
+    username: string;
+    password: string;
+    email: string;
+  }) => {
+    try {
+      const res = await api.post("/api/auth/admin/register", adminData);
+      message.success(res?.data.message || "管理员注册成功");
+      console.log(res?.data.message);
+    } catch (error: any) {
+      throw error;
+    }
+  },      logout: () => {
         // 清理当前 Store
         set({
           isAuthenticated: false,
@@ -233,38 +251,56 @@ const useUserStore = create<UserState>()(
           
           const { isAdmin } = get();
 
-          // 一般用户获取自己的信息
-          if (!isAdmin) {
-            const userData = res?.data;
-            
-            if (userData) {
-              // 提取 likes 和 complaints
-              const { records, favorites, ...userInfo } = userData;
-              const likes = records?.likes || [];
-              const complaints = records?.complaints || [];
-
-              console.log('📝 fetchUserProfile: 准备更新state', {
-                nickname: userInfo.nickname,
-                email: userInfo.email,
-                qq_id: userInfo.qq_id
-              });
-              
-              // 分别设置用户信息和记录
-              set({ 
-                currentUser: {
-                  ...userInfo,
-                  likes,
-                  complaints,
-                  favorites,
-                }
-              });
-              
-              console.log('✅ fetchUserProfile: state已更新', get().currentUser);
-            }
+          // ✅ 管理员直接返回，不需要复杂的用户信息
+          if (isAdmin) {
+            console.log('👑 fetchUserProfile: 管理员登录成功');
+            // 管理员只需要基本信息
+            set({ 
+              currentUser: {
+                username: res?.data.username,
+                email: res?.data.email,
+                nickname: res?.data.username, // 管理员用 username 作为 nickname
+                campus_id: 0,
+                qq_id: '',
+                credit: 100,
+                theme_id: 1,
+                background_url: undefined,
+                banner_url: undefined,
+                avatar: undefined,
+                likes: [],
+                complaints: [],
+                favorites: { posts: [], goods: [] },
+              }
+            });
+            return;
           }
-          // 管理员获取所有用户信息
-          else {
-            set({ users: res?.data });
+
+          // 一般用户获取自己的信息
+          const userData = res?.data;
+          
+          if (userData) {
+            // 提取 likes 和 complaints
+            const { records, favorites, ...userInfo } = userData;
+            const likes = records?.likes || [];
+            const complaints = records?.complaints || [];
+
+            console.log('📝 fetchUserProfile: 准备更新state', {
+              nickname: userInfo.nickname,
+              email: userInfo.email,
+              qq_id: userInfo.qq_id
+            });
+            
+            // 分别设置用户信息和记录
+            set({ 
+              currentUser: {
+                ...userInfo,
+                likes,
+                complaints,
+                favorites,
+              }
+            });
+            
+            console.log('✅ fetchUserProfile: state已更新', get().currentUser);
           }
         } catch (error: any) {
           console.error('❌ fetchUserProfile: 请求失败', error);

@@ -23,6 +23,7 @@ const Lazy = {
   Template: React.lazy(() => import("./pages/Publish/MarketPublish/Template/Template")),
   Login: React.lazy(() => import("./pages/Auth/Login/Login")),
   Register: React.lazy(() => import("./pages/Auth/Register/Register")),
+  AdminRegister: React.lazy(() => import("./pages/Admin/Register/Register")),
   Reset: React.lazy(() => import("./pages/User/Settings/Reset/Reset")),
   User: React.lazy(() => import("./pages/User/User")),
   Forum: React.lazy(() => import("./pages/Forum/Forum")),
@@ -244,6 +245,10 @@ const App: React.FC = () => {
   ], []);
 
   const webRoutes = useMemo(() => [
+    {
+      path: "/auth/admin/register",
+      element: <Lazy.AdminRegister />
+    },
     {
       path: "/admin",
       element: (

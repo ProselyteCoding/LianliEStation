@@ -4,6 +4,7 @@ import api from "../api/index";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { AxiosError } from "axios";
+import { compressPostImages } from "../utils/imageCompression";
 
 interface Goods {
   id: number;
@@ -391,9 +392,11 @@ const useMainStore = create<MainState>()(
           formData.append('campus_id', campus_id.toString());
           if(tag) formData.append('tag', tag);
           
-          // 如果有图片，添加到formData
+          // ✅ 如果有图片，先压缩再添加到formData
           if (images && images.length > 0) {
-            images.forEach((image) => {
+            console.log('🔄 开始压缩帖子图片...');
+            const compressedImages = await compressPostImages(images);
+            compressedImages.forEach((image) => {
               formData.append('images', image);
             });
           }
@@ -444,9 +447,11 @@ const useMainStore = create<MainState>()(
             formData.append('tag', tag);
           }
           
-          // 图片上传（最多3张）
+          // ✅ 图片上传（最多3张）- 先压缩再上传
           if (images && images.length > 0) {
-            images.forEach((image) => {
+            console.log('🔄 开始压缩商品图片...');
+            const compressedImages = await compressPostImages(images);
+            compressedImages.forEach((image) => {
               formData.append('images', image);
             });
           }
@@ -500,9 +505,11 @@ const useMainStore = create<MainState>()(
             formData.append('tag', tag);
           }
           
-          // 图片上传（最多3张）
+          // ✅ 图片上传（最多3张）- 先压缩再上传
           if (images && images.length > 0) {
-            images.forEach((image) => {
+            console.log('🔄 开始压缩商品图片（修改）...');
+            const compressedImages = await compressPostImages(images);
+            compressedImages.forEach((image) => {
               formData.append('images', image);
             });
           }
@@ -546,9 +553,11 @@ const useMainStore = create<MainState>()(
             formData.append('tag', tag);
           }
           
-          // 图片上传（最多9张）
+          // ✅ 图片上传（最多9张）- 先压缩再上传
           if (images && images.length > 0) {
-            images.forEach((image) => {
+            console.log('🔄 开始压缩帖子图片（修改）...');
+            const compressedImages = await compressPostImages(images);
+            compressedImages.forEach((image) => {
               formData.append('images', image);
             });
           }
