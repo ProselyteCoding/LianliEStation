@@ -232,7 +232,12 @@ const ForumDetail = () => {
                 
                 <div className="comment">
                 <div className="counter">
-                    {`评论 ${forum?.comments.length||0}`}
+                    {`评论 ${
+                    (forum?.comments ?? []).length +
+                    (forum?.comments ?? []).reduce((total, comment) => {
+                        return total + (comment.replies ?? []).length;
+                    }, 0)
+                    }`}
                 </div>
 
                 <div className='comment-list'>
@@ -257,16 +262,17 @@ const ForumDetail = () => {
                                         description={comment.content}
                                     />
 
-                                    {
-                                        comment.replies.length > 0 && (
-                                            <Button type='link' onClick={(e) => {
-                                                e.stopPropagation()
-                                                setOpenReplies(openReplies === index ? null : index)
-                                                }}>
-                                                {openReplies === index ? '收起回复' : `展开${comment.replies.length}条回复`}
-                                            </Button>
-                                        )
-                                    }
+                                    {(comment.replies ?? []).length > 0 && (
+                                        <Button 
+                                            type='link' 
+                                            onClick={(e) => {
+                                            e.stopPropagation()
+                                            setOpenReplies(openReplies === index ? null : index)
+                                            }}
+                                        >
+                                            {openReplies === index ? '收起回复' : `展开${(comment.replies ?? []).length}条回复`}
+                                        </Button>
+                                        )}
 
                                     {
                                         openReplies === index && (
