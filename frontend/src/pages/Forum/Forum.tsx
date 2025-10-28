@@ -433,11 +433,12 @@ const Forum = () => {
                 };
 
                 return (
-                  <div 
-                    className={`post-card ${post.images.length > 0 ? 'has-images' : 'no-images'}`}
-                    key={post.id} 
-                onClick={() => navigate(`/forum-detail?id=${post.id}`)}
-              >
+                <div 
+                  className={`post-card ${post.images.length > 0 ? 'has-images' : 'no-images'}`}
+                  key={post.id} 
+                  onClick={() => navigate(`/forum-detail?id=${post.id}`)}
+                  // onClick={()=>console.log(posts)}
+                >
                 <div className="post-header">
                   <div className="author-info">
                     <img 

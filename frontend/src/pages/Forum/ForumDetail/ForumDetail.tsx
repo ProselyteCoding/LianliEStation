@@ -28,11 +28,13 @@ const ForumDetail = () => {
     const recordStore = useRecordStore()
 
     useEffect(() => {
-        mainStore.fetchPosts();
+        // mainStore.fetchPosts();
+        // console.log(forum)
       }, [refreshTrigger]);
 
     const forum = mainStore.posts.find((forum)=> forum.id === (forumId?parseInt(forumId):null))
 
+    console.log(forum)
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
             if (commentRef.current && !commentRef.current.contains(event.target as Node)) {

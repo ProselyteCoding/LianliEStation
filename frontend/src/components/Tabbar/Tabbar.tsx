@@ -28,16 +28,17 @@ const Tabbar: React.FC<TabbarProps> = ({ initialIndex }) => {
     <div className="tabbar-container">
       <div className="tabbar-item" onClick={() => handleClick("/market", 0)}>
         <div className="tabbar-icon">
-          <img
-            src={activeIndex === 0 ? market_active : market}
-            alt="market"
-          ></img>
+          {
+            activeIndex===0?<i className="iconfont icon-market-active"></i>:<i className="iconfont icon-market"></i>
+          }
         </div>
         <span style={(activeIndex === 0 ? { color: "white" } : { color: "white" })} >商城</span>
       </div>
       <div className="tabbar-item" onClick={() => handleClick("/forum", 1)}>
         <div className="tabbar-icon">
-          <img src={activeIndex === 1 ? forum_active : forum} alt="forum"></img>
+          {
+            activeIndex===1?<i className="iconfont icon-forum-active"></i>:<i className="iconfont icon-forum"></i>
+          }
         </div>
         <span style={(activeIndex === 1 ? { color: "#white" } : { color: "white" })} >校园墙</span>
       </div>
@@ -52,7 +53,9 @@ const Tabbar: React.FC<TabbarProps> = ({ initialIndex }) => {
       </div> */}
       <div className="tabbar-item" onClick={() => handleClick("/user", 3)}>
         <div className="tabbar-icon">
-          <img src={activeIndex === 2 ? user_active : user} alt="user"></img>
+          {
+            activeIndex===2?<i className="iconfont icon-user-active"></i>:<i className="iconfont icon-user"></i>
+          }
         </div>
         <span style={(activeIndex === 2 ? { color: "white" } : { color: "white" })} >用户</span>
       </div>
