@@ -1,17 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './ForumDetail.scss'
+import '../../../Icon.scss';
 import { useMainStore,useRecordStore,useUserStore } from '../../../store';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Image,Card,Avatar, Button, message} from 'antd';
 import { Carousel } from 'antd';
 import dayjs from 'dayjs';
-import Liked from '../../../assets/liked.svg';
-import Star from '../../../assets/star.svg';
-import Share from '../../../assets/share.svg';
-import Like from '../../../assets/like.svg';
-import Stared from '../../../assets/stared.svg';
-import Left from '../../../assets/left-black.svg';
-import ShareIcon from '../../../assets/share-black.svg';
 import ChatInput from '../../../components/Comment/ChatInput';
 
 const ForumDetail = () => {
@@ -34,11 +28,13 @@ const ForumDetail = () => {
     const recordStore = useRecordStore()
 
     useEffect(() => {
-        mainStore.fetchPosts();
+        // mainStore.fetchPosts();
+        // console.log(forum)
       }, [refreshTrigger]);
 
     const forum = mainStore.posts.find((forum)=> forum.id === (forumId?parseInt(forumId):null))
 
+    console.log(forum)
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
             if (commentRef.current && !commentRef.current.contains(event.target as Node)) {
@@ -196,8 +192,8 @@ const ForumDetail = () => {
         <div className='forum-detail'>
 
             <div className='forum-navbar'>
-                <img className='navbar-icon' src={Left} alt='返回' onClick={() => navigate('/forum')} />
-                <img className='navbar-icon' src={ShareIcon} alt='分享' onClick={share} />
+                <i className='navbar-icon iconfont icon-left' onClick={() => navigate('/forum')}></i>
+                <i className='navbar-icon iconfont icon-share' onClick={share}></i>
             </div>
 
             <div className='content'>
@@ -335,19 +331,19 @@ const ForumDetail = () => {
 
                 <div className="like">
                     <div className="icon">
-                        <img src={likeState?Liked:Like} alt='like' onClick={like}/>
+                        <i className={`iconfont ${likeState ? 'icon-liked2' : 'icon-like2'}`} onClick={like}></i>
                     </div>
                 </div>
 
                 <div className='star'>
                     <div className="icon">
-                        <img src={forumState?Stared:Star} alt='star' onClick={star}/>
+                        <i className={`iconfont ${forumState ? 'icon-favorited' : 'icon-favorite'}`} onClick={star}></i>
                     </div>
                 </div>
 
                 <div className="share">
                     <div className='icon'>
-                        <img src={Share} alt='share' onClick={share}/>
+                        <i className="iconfont icon-share" onClick={share}></i>
                     </div>
                 </div>
             </div>

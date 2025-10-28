@@ -4,17 +4,11 @@ import Navbar from "../../../components/Navbar/Navbar";
 import "./Messages.scss";
 import { useRecordStore, useUserStore } from "../../../store";
 import NoticeModal from "../../../components/NoticeModal/NoticeModal";
-import {
-  ProductOutlined,
-  MessageOutlined,
-  SafetyOutlined,
-} from "@ant-design/icons";
+import "../../../Icon.scss"
 import type { MenuProps } from "antd";
 import { Dropdown } from "antd";
 import { timeFormat } from "../../../utils/formatters";
 import { px2rem } from "../../../utils/rem";
-import messages_read from "../../../assets/messages-read.svg";
-import messages_unread from "../../../assets/messages-unread.svg";
 import takePlace from "../../../assets/takePlace.png";
 
 interface Conditions {
@@ -82,7 +76,7 @@ const Messages = () => {
           全部
         </div>
       ),
-      icon: <ProductOutlined />,
+      icon: <i className="iconfont icon-all"></i>,
     },
     {
       key: "2",
@@ -96,7 +90,7 @@ const Messages = () => {
           申诉
         </div>
       ),
-      icon: <SafetyOutlined />,
+      icon: <i className="iconfont icon-appeal"></i>,
     },
     {
       key: "3",
@@ -110,7 +104,7 @@ const Messages = () => {
           回复
         </div>
       ),
-      icon: <MessageOutlined />,
+      icon: <i className="iconfont icon-reply"></i>,
     },
   ];
 
@@ -227,9 +221,7 @@ const Messages = () => {
           <div className="messages-control-item">
             <Dropdown menu={{ items }}>
               <div onClick={(e) => e.preventDefault()} style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <ProductOutlined
-                  style={{ width: px2rem(20), height: px2rem(20), marginRight: px2rem(5) }}
-                />
+                <i className="iconfont icon-more"></i>
                 {currentType}
               </div>
             </Dropdown>
@@ -241,12 +233,13 @@ const Messages = () => {
             }}
           >
             <div className="messages-control-item-btn">
-              <img
-                src={`${
-                  conditions.read === false ? messages_unread : messages_read
-                }`}
-                alt="未读/已读"
-              />
+              {
+                conditions.read === false ? (
+                  <i className="iconfont icon-messages"></i>
+                ) : (
+                  <i className="iconfont icon-messages-read"></i>
+                )
+              }
               <button>{conditions.read === false ? "未读" : "已读"}</button>
             </div>
           </div>

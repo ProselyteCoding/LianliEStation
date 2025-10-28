@@ -46,7 +46,6 @@ $bg:#EDEDED;
         }
 
         .right-icon {
-            @include size(24);
             margin-right: px2rem(10);
             margin-left: auto;  // 推到右边
             flex-shrink: 0;  // 防止被压缩

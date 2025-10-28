@@ -1498,6 +1498,17 @@ const routes = [
 - 表单状态：使用 Ant Design Form
 - 服务端状态：考虑使用 React Query（可选）
 
+#### 字体图标使用方法
+
+**图标添加**
+字体图标已打包为woff,ttf文件，若需添加图标请联系Unicorn
+
+**图标使用**
+- 在页面中请先导入'Icon.scss'
+- 添加i标签，并将其className命名为"iconfont icon-name(自选)"
+- 样式请在Icon.scss文件中更改，若同一个图标需使用多种样式，请在Icon.scss中用同一content重新创建一个新图标命名后再修改
+- 所有样式名字均存在于Icon.scss中，若不明白样式对应图标可查看附件Map_Content_Icon(为content与图标的对照，命名参考Icon.scss 例：content:e917对应的图标为购物袋)
+
 ---
 
 ### 后端架构

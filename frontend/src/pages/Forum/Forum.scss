@@ -98,7 +98,6 @@ $card-bg: #fff;
 
         .icon {
             display: flex;
-            @include size(30);
             margin-left: px2rem(10);
         }
     }

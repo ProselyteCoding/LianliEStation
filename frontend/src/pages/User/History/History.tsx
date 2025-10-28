@@ -3,7 +3,6 @@ import { useEffect, useState, useRef } from "react";
 import { useRecordStore, useUserStore } from "../../../store";
 import takePlace from "../../../assets/takePlace.png";
 import { Card, Dropdown, Empty, message } from "antd";
-import { AppstoreOutlined, ShoppingOutlined, FileTextOutlined, SettingOutlined } from "@ant-design/icons";
 import type { MenuProps } from "antd";
 import NoticeModal from "../../../components/NoticeModal/NoticeModal";
 import { useNavigate } from "react-router-dom";
@@ -44,7 +43,7 @@ const History = () => {
           商品
         </div>
       ),
-      icon: <ShoppingOutlined />,
+      icon: <i className="iconfont icon-goods"></i>,
     },
     {
       key: "2",
@@ -59,7 +58,7 @@ const History = () => {
           帖子
         </div>
       ),
-      icon: <FileTextOutlined />,
+      icon: <i className="iconfont icon-post"></i>,
     },
   ];
 
@@ -219,16 +218,14 @@ const History = () => {
           <div className="select-item">
             <Dropdown menu={{ items }}>
               <div onClick={(e) => e.preventDefault()} style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <AppstoreOutlined
-                  style={{ width: px2rem(20), height: px2rem(20), marginRight: px2rem(5) }}
-                />
+                <i className="iconfont icon-more"></i>
                 {currentType}
               </div>
             </Dropdown>
           </div>
           <div className="select-item" onClick={() => handleOnClick()}>
             <div className="select-item-btn">
-              <SettingOutlined style={{ marginRight: px2rem(5) }} />
+              <i className="iconfont icon-manage"></i>
               管理
             </div>
           </div>

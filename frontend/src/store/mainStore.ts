@@ -593,17 +593,20 @@ const useMainStore = create<MainState>()(
             parent_id: parent_id ? parent_id : null,
             value: value ? value : null,
           });
-
-          // if (response?.status === 200) {
-          //   if(action === "like"){
-          //     set((state) => ({
-          //       forums: state.forums.map((forum) =>
-          //         forum.id === id ? { ...forum, like: !forum.like } : forum
-          //       ),
-          //     }));
-          //   }
-          // }
-          return response.status;
+          if (response?.status === 201) {
+            const newComment = response.data.comment
+            set((state) => ({
+              posts: state.posts.map((post) =>
+                post.id === id
+                  ? {
+                      ...post,
+                      comments: [post.comments,newComment],
+                    }
+                  : post
+              ),
+            }));
+            console.log(1)
+          }
         }
         catch(error){
           console.log(error)

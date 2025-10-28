@@ -19,11 +19,6 @@
     width: 100vw;
     height: px2rem(40);
     @include padding(0, 25, 0, 15);
-    
-    .navbar-icon {
-      @include size(32);
-      cursor: pointer;
-    }
   }
   
   .detail-slider {
@@ -205,10 +200,6 @@
         width: px2rem(80);
         height: px2rem(40);
         
-        .like-icon {
-          @include size(32);
-        }
-        
         .like-text {
           margin-left: px2rem(5);
           @include font-size(16);
@@ -222,10 +213,6 @@
         width: px2rem(80);
         height: px2rem(40);
         margin-left: px2rem(60);
-        
-        .dislike-icon {
-          @include size(32);
-        }
         
         .dislike-text {
           margin-left: px2rem(5);
@@ -247,10 +234,6 @@
         width: px2rem(80);
         height: px2rem(40);
         
-        .like-icon {
-          @include size(32);
-        }
-        
         .like-text {
           @include font-size(16);
           align-content: center;
@@ -263,11 +246,7 @@
         width: px2rem(80);
         height: px2rem(40);
         @include margin(0, 30, 0, 40);
-        
-        .dislike-icon {
-          @include size(32);
-        }
-        
+
         .dislike-text {
           margin-left: px2rem(5);
           @include font-size(16);
@@ -304,7 +283,6 @@
       @include border-radius(5);
       
       .qqBtn-icon {
-        @include size(24);
         margin-left: px2rem(5);
       }
       
@@ -323,7 +301,6 @@
       @include border-radius(5);
       
       .starBtn-icon {
-        @include size(24);
       }
       
       .starBtn-text {
