@@ -3,6 +3,7 @@ import api from "../api/index";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { AxiosError } from "axios";
+import { compressAppealImages } from "../utils/imageCompression";
 
 interface Response {
   id: number;
@@ -338,8 +339,12 @@ const useRecordStore = create<RecordState>()(
           formData.append("id", id.toString());
           formData.append("content", content);
           formData.append("type", type);
-          if (images) {
-            images.forEach((image, index) => {
+          
+          // ✅ 如果有图片，先压缩再添加
+          if (images && images.length > 0) {
+            console.log('🔄 开始压缩申诉图片...');
+            const compressedImages = await compressAppealImages(images);
+            compressedImages.forEach((image, index) => {
               formData.append(`images[${index}]`, image);
             });
           }

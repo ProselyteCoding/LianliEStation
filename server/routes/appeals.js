@@ -4,6 +4,7 @@ import fs from "fs";
 import jwt from "jsonwebtoken"; // 用于生成 JWT
 import db from "../db.js";
 import upload from "../middlewares/uploadImg.js"; // 引入图片上传中间件
+import { appealLimiter } from "../middlewares/limiter.js"; // 引入申诉限流中间件
 
 let router = Router();
 
@@ -11,7 +12,7 @@ dotenv.config();
 const SECRET_KEY = process.env.SECRET_KEY;
 
 // 提交申诉
-router.post("/publish", upload.array("images", 3), async (req, res) => {
+router.post("/publish", appealLimiter, upload.array("images", 3), async (req, res) => {
   const { id, title, content, type } = req.body;
   const files = req.files;
   const token = req.headers.authorization?.split(" ")[1]; // 获取 token
