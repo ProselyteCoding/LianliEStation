@@ -11,6 +11,7 @@ import { Dropdown, Button, message, Modal } from 'antd'
 import type { MenuProps } from 'antd'
 // import { aiAPI } from '../../../../api'
 import { px2rem } from '../../../../utils/rem'
+import { useDebounce,useDebouncedCallback } from '../../../../hooks/useDebounce'
 
 const initialState = {
   id: 1,
@@ -519,6 +520,8 @@ const Template = () => {
     }
   }
 
+  const handlePublishDebounce=useDebouncedCallback(handlePublish)
+
   return (
     <div className='template-container'>
       <Navbar 
@@ -655,7 +658,7 @@ const Template = () => {
       </div>
 
       <div className='submit'>
-        <button onClick={() => handlePublish()}>{isEdit ? '保存修改' : '发布'}</button>
+        <button onClick={handlePublishDebounce}>{isEdit ? '保存修改' : '发布'}</button>
       </div>
     </div>
   )

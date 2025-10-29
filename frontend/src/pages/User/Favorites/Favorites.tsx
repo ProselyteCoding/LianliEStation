@@ -8,6 +8,7 @@ import { useUserStore } from "../../../store"
 import { px2rem } from "../../../utils/rem"
 import "./Favorites.scss"
 import takePlace from "../../../assets/takePlace.png"
+import { useDebounce,useDebouncedCallback } from '../../../hooks/useDebounce'
 
 type checkBox = { [number: number]: boolean }
 
@@ -93,6 +94,7 @@ const Favorites: React.FC = () => {
     }
   }
 
+  const handleOnDeleteDebounce = useDebouncedCallback(handleOnDelete)
 
   return (
     <div className="favorites-container">
@@ -220,7 +222,7 @@ const Favorites: React.FC = () => {
         isVisible ? (
           <div className="footer">
             <div className="delete-button">
-              <button onClick={() => handleOnDelete()}>删除</button>
+              <button onClick={() => handleOnDeleteDebounce()}>删除</button>
             </div>
           </div>) : null
       }

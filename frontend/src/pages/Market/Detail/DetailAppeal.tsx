@@ -7,6 +7,7 @@ import "./DetailAppeal.scss";
 import "../../../Icon.scss";
 import { useMainStore, useUserStore } from "../../../store";
 import { useParams, useNavigate } from "react-router-dom";
+import { useDebounce,useDebouncedCallback } from '../../../hooks/useDebounce'
 
 type FileType = Parameters<GetProp<UploadProps, "beforeUpload">>[0];
 
@@ -79,7 +80,9 @@ const DetailAppeal = () => {
       }
     }
   };
-
+  
+  const handleDislikeDebounce = useDebouncedCallback(handleDislike)
+  
   return (
     <div className="appeal-container">
       <i
@@ -119,7 +122,7 @@ const DetailAppeal = () => {
           />
         )}
       </div>
-      <button className="appeal-submit" onClick={handleDislike}>
+      <button className="appeal-submit" onClick={handleDislikeDebounce}>
         提交举报
       </button>
     </div>
