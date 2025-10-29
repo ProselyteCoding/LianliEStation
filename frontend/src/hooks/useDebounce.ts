@@ -17,7 +17,7 @@ function useDebounce<T>(value: T, delay: number = 300): T {
 
 function useDebouncedCallback<Fn extends (...args: any[]) => any>(
   fn: Fn,
-  delay: number = 200
+  delay: number = 400
 ): Fn {
   const timerRef = useRef<NodeJS.Timeout | null>(null);  // 存储定时器ID
 
