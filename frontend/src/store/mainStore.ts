@@ -588,33 +588,46 @@ const useMainStore = create<MainState>()(
         try {
           const response = await api.post(`api/forum/posts/interact/${id}`, {
             post_id: id,
-            action: action,
-            content: content ? content : null,
-            parent_id: parent_id ? parent_id : null,
-            value: value ? value : null,
+            action,
+            content: content || null,
+            parent_id: parent_id || null,
+            value: value || null,
           });
+
           if (response?.status === 201) {
-            const newComment = response.data.comment
+            let newComment = response.data?.comment;
+            if (!newComment) return;
+
             set((state) => ({
               posts: state.posts.map((post) =>
-                post.id === id
-                  ? {
-                      ...post,
-                      comments: [post.comments,newComment],
-                    }
+                post.id === id 
+                  ? parent_id
+                    ? {
+                        ...post,
+                        comments: post.comments.map((comment) =>
+                          comment.id === parent_id
+                            ? {
+                                ...comment,
+                                replies: [...(comment.replies || []), newComment],
+                              }
+                            : comment
+                        ),
+                      }
+                    : {
+                        ...post,
+                        comments: [...(post.comments || []), newComment],
+                      }
                   : post
               ),
             }));
-            console.log(1)
           }
-        }
-        catch(error){
-          console.log(error)
+        } catch (error) {
+          console.error(error);
           const err = error as AxiosError;
-          if (err.response)
-            return err.response.status;
+          if (err.response) return err.response.status;
         }
       },
+
 
       // ==================== 商品相关方法 ====================
 
