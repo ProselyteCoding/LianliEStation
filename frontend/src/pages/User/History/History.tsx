@@ -8,6 +8,7 @@ import NoticeModal from "../../../components/NoticeModal/NoticeModal";
 import { useNavigate } from "react-router-dom";
 import { px2rem } from "../../../utils/rem";
 import "./History.scss";
+import { useDebounce,useDebouncedCallback } from '../../../hooks/useDebounce'
 
 type checkBox = { [number: number]: boolean };
 
@@ -205,6 +206,9 @@ const History = () => {
     }
   }
 
+  const handleOnDeleteDebounce = useDebouncedCallback(handleOnDelete)
+  const handleOnCompleteDebounce = useDebouncedCallback(handleOnComplete)
+  const handleOnEditDebounce = useDebouncedCallback(handleOnEdit)
 
   return (
     <div className="history-container">
@@ -335,22 +339,22 @@ const History = () => {
           <div className="footer-buttons">
             {!isPosts ? (
               <>
-                <button className="btn-complete" onClick={() => handleOnComplete()}>
+                <button className="btn-complete" onClick={() => handleOnCompleteDebounce()}>
                   交易完成
                 </button>
-                <button className="btn-edit" onClick={() => handleOnEdit()}>
+                <button className="btn-edit" onClick={() => handleOnEditDebounce()}>
                   修改商品
                 </button>
-                <button className="btn-delete" onClick={() => handleOnDelete()}>
+                <button className="btn-delete" onClick={() => handleOnDeleteDebounce()}>
                   删除商品
                 </button>
               </>
             ) : (
               <>
-                <button className="btn-edit" onClick={() => handleOnEdit()}>
+                <button className="btn-edit" onClick={() => handleOnEditDebounce()}>
                   修改帖子
                 </button>
-                <button className="btn-delete" onClick={() => handleOnDelete()}>
+                <button className="btn-delete" onClick={() => handleOnDeleteDebounce()}>
                   删除帖子
                 </button>
               </>

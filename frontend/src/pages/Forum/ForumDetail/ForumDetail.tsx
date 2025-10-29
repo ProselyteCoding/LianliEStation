@@ -7,6 +7,7 @@ import { Image,Card,Avatar, Button, message} from 'antd';
 import { Carousel } from 'antd';
 import dayjs from 'dayjs';
 import ChatInput from '../../../components/Comment/ChatInput';
+import { useDebounce,useDebouncedCallback } from '../../../hooks/useDebounce'
 
 const ForumDetail = () => {
     const location = useLocation();
@@ -188,6 +189,10 @@ const ForumDetail = () => {
         }
     }
 
+    const starDebounce = useDebouncedCallback(star,100)
+    const commentDebounce = useDebouncedCallback(comment,100)
+    const likeDebounce = useDebouncedCallback(like,100)
+
     return (
         <div className='forum-detail'>
 
@@ -331,19 +336,19 @@ const ForumDetail = () => {
             </div> */}
 
             <div className="function">
-                <div className="comment" onClick={comment}>
+                <div className="comment" onClick={commentDebounce}>
                     说点什么吧
                 </div>
 
                 <div className="like">
                     <div className="icon">
-                        <i className={`iconfont ${likeState ? 'icon-liked2' : 'icon-like2'}`} onClick={like}></i>
+                        <i className={`iconfont ${likeState ? 'icon-liked2' : 'icon-like2'}`} onClick={likeDebounce}></i>
                     </div>
                 </div>
 
                 <div className='star'>
                     <div className="icon">
-                        <i className={`iconfont ${forumState ? 'icon-favorited' : 'icon-favorite'}`} onClick={star}></i>
+                        <i className={`iconfont ${forumState ? 'icon-favorited' : 'icon-favorite'}`} onClick={starDebounce}></i>
                     </div>
                 </div>
 

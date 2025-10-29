@@ -4,6 +4,7 @@ import { message } from "antd";
 import { useUserStore } from "../../../../store";
 import Navbar from "../../../../components/Navbar/Navbar";
 import "./Forget.scss";
+import { useDebounce,useDebouncedCallback } from '../../../../hooks/useDebounce'
 
 const Forget: React.FC = () => {
   const [inputs, setInputs] = useState({
@@ -83,7 +84,7 @@ const Forget: React.FC = () => {
   };
 
   const isFormComplete = Object.values(inputs).every((value) => value.trim() !== "");
-
+  const handleRequestDebounce = useDebouncedCallback(handleRequest)
   return (
     <div className="forget-container">
       <Navbar title="忘记密码" backActive={true} backPath={isAuthenticated ? "/user/settings" : "/auth/login"} />
@@ -118,7 +119,7 @@ const Forget: React.FC = () => {
                   {Math.ceil(countdown)}秒
                 </button>
               ) : (
-                <button type="button" className="verification-btn" onClick={handleRequest}>
+                <button type="button" className="verification-btn" onClick={handleRequestDebounce}>
                   获取验证码
                 </button>
               )}

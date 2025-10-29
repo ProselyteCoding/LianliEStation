@@ -11,6 +11,7 @@ import type { MenuProps } from 'antd'
 // import { aiAPI } from '../../../api'
 import { px2rem } from '../../../utils/rem'
 import NoticeModal from '../../../components/NoticeModal/NoticeModal'
+import { useDebounce,useDebouncedCallback } from '../../../hooks/useDebounce'
 
 const initialState = {
   id: 1,
@@ -455,6 +456,9 @@ const ForumPublish = () => {
     }
   }
 
+  const handlePublishDebounce = useDebouncedCallback(handlePublish
+
+  )
   return (
     <div className='template-container'>
       {!isAuthenticated && <NoticeModal type='login'/>}
@@ -565,7 +569,7 @@ const ForumPublish = () => {
       </div>
 
       <div className='submit'>
-        <button onClick={() => handlePublish()}>
+        <button onClick={() => handlePublishDebounce()}>
           {isEdit ? '保存修改' : '发布'}
         </button>
       </div>

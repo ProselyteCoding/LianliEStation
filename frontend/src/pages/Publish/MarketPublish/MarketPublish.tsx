@@ -10,6 +10,7 @@ import Navbar from "../../../components/Navbar/Navbar";
 import logo from "../../../assets/logo.png";
 import accept from "../../../assets/accept.png";
 import refresh from "../../../assets/refresh.svg";
+import { useDebounce,useDebouncedCallback } from '../../../hooks/useDebounce'
 
 export interface PublishProps {
   title: string;
@@ -250,6 +251,10 @@ const Publish: React.FC = () => {
     handleRequest(previousText);
   };
 
+  const handlePostDebounce = useDebouncedCallback(handlePost)
+  const handleRefreshDebounce = useDebouncedCallback(handleRefresh)
+  const handleGenerateTemplateDebounce = useDebouncedCallback(handleGenerateTemplate)
+
   // 监听dialogHistory的变化并滚动到底部
   useEffect(() => {
     if (containerRef.current) {
@@ -313,14 +318,14 @@ const Publish: React.FC = () => {
                   <div className="dialog-control">
                     <div
                       className="dialog-btn"
-                      onClick={() => handleGenerateTemplate(dialog.content)}
+                      onClick={() => handleGenerateTemplateDebounce(dialog.content)}
                     >
                       <div className="btn-icon">
                         <img src={accept} alt="生成模板"></img>
                       </div>
                       <div className="btn-text">生成模板</div>
                     </div>
-                    <div className="dialog-btn" onClick={() => handleRefresh()}>
+                    <div className="dialog-btn" onClick={() => handleRefreshDebounce()}>
                       <div className="btn-icon">
                         <img src={refresh} alt="重新生成"></img>
                       </div>
@@ -343,7 +348,7 @@ const Publish: React.FC = () => {
           value={textareaValue}
           onChange={(e) => setTextareaValue(e.target.value)}
         ></textarea>
-        <button className="input-btn" onClick={handlePost}>
+        <button className="input-btn" onClick={handlePostDebounce}>
           发送
         </button>
       </div>

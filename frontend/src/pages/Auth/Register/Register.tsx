@@ -4,6 +4,7 @@ import { message } from "antd";
 import { useUserStore } from "../../../store";
 import Navbar from "../../../components/Navbar/Navbar";
 import "./Register.scss";
+import { useDebounce,useDebouncedCallback } from '../../../hooks/useDebounce'
 
 const Register: React.FC = () => {
   const [inputs, setInputs] = useState({

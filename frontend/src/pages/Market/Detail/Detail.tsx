@@ -7,6 +7,7 @@ import { message, Image, Carousel } from "antd";
 import "./Detail.scss";
 import "../../../Icon.scss";
 import takePlace from "../../../assets/takePlace.png";
+import { useDebounce,useDebouncedCallback } from '../../../hooks/useDebounce'
 
 interface Goods {
   id: number;
@@ -226,6 +227,10 @@ const Detail = () => {
     }
   }
 
+  const handleLikeDebounce = useDebouncedCallback(handleLike,100)
+  const handleDislikeDebounce = useDebouncedCallback(handleDislike,100)
+  const handleStarDebounce = useDebouncedCallback(handleStar,100)
+
   return (
     <div className="detail-container">
       <div className="detail-navbar">
@@ -295,11 +300,11 @@ const Detail = () => {
             <div className="user-like">
               <i
                 className={`like-icon iconfont ${isLiked ? 'icon-liked' : 'icon-like'}`}
-                onClick={handleLike}
+                onClick={handleLikeDebounce}
               ></i>
               <div className="like-text">{currentGoods?.likes}</div>
             </div>
-            <div className="user-dislike" onClick={() => handleDislike()}>
+            <div className="user-dislike" onClick={() => handleDislikeDebounce()}>
               <i
                 className={`dislike-icon iconfont ${isDisliked ? 'icon-disliked' : 'icon-dislike'}`}
               ></i>
@@ -309,13 +314,13 @@ const Detail = () => {
         )}
         {isMine === "manage" && (
           <div className="alter-manage">
-            <div className="manage-like" onClick={handleLike}>
+            <div className="manage-like" onClick={handleLikeDebounce}>
               <i
                 className={`like-icon iconfont ${isLiked ? 'icon-like-true' : 'icon-like-false'}`}
               ></i>
               <div className="like-text">{currentGoods?.likes}</div>
             </div>
-            <div className="manage-dislike" onClick={handleDislike}>
+            <div className="manage-dislike" onClick={handleDislikeDebounce}>
               <i
                 className={`dislike-icon iconfont ${isDisliked ? 'icon-dislike-true' : 'icon-dislike-false'}`}
               ></i>
@@ -326,7 +331,7 @@ const Detail = () => {
         )}
       </div>
       <div className="detail-btn">
-        <div className="star-btn" onClick={handleStar}>
+        <div className="star-btn" onClick={handleStarDebounce}>
           <i className={`starBtn-icon iconfont ${isStared ? 'icon-favorited' : 'icon-favorite'}`}></i>
           <div className="starBtn-text">加入收藏</div>
         </div>

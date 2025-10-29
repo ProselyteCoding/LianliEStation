@@ -8,6 +8,8 @@ import { Button, Input, Select, message } from "antd";
 import { UploadOutlined, CameraOutlined } from "@ant-design/icons";
 import NoticeModal from "../../../../components/NoticeModal/NoticeModal";
 import ImageCropper from "../../../../components/ImageCropper/ImageCropper";
+import { useDebounce,useDebouncedCallback } from '../../../../hooks/useDebounce'
+
 
 interface Profile {
   nickname: string | undefined;
@@ -249,6 +251,11 @@ const Reset = () => {
     }
   };
 
+  const handleBannerSubmitDebounce = useDebouncedCallback(handleBannerSubmit)
+  const handleBackgroundSubmitDebounce = useDebouncedCallback(handleBackgroundSubmit)
+  const handleAvatarSubmitDebounce = useDebouncedCallback(handleAvatarSubmit)
+  const handleProfileSubmitDebounce = useDebouncedCallback(handleProfileSubmit)
+
   switch (type) {
     case "nickname":
       return (
@@ -268,7 +275,7 @@ const Reset = () => {
             <Button 
               type="primary" 
               className="submit-button"
-              onClick={handleProfileSubmit}
+              onClick={handleProfileSubmitDebounce}
               size="large"
               block
               loading={loading}
@@ -301,7 +308,7 @@ const Reset = () => {
             <Button 
               type="primary" 
               className="submit-button"
-              onClick={handleProfileSubmit}
+              onClick={handleProfileSubmitDebounce}
               size="large"
               block
               loading={loading}
@@ -329,7 +336,7 @@ const Reset = () => {
             <Button 
               type="primary" 
               className="submit-button"
-              onClick={handleProfileSubmit}
+              onClick={handleProfileSubmitDebounce}
               size="large"
               block
               loading={loading}
@@ -362,7 +369,6 @@ const Reset = () => {
                       className="delete-button"
                       onClick={() => clearPreview('avatar')}
                     >
-                      ×
                     </button>
                   </div>
                 ) : (
@@ -385,7 +391,7 @@ const Reset = () => {
             <Button 
               type="primary" 
               className="submit-button"
-              onClick={handleAvatarSubmit}
+              onClick={handleAvatarSubmitDebounce}
               size="large"
               block
               disabled={!profile?.avatar}
@@ -427,7 +433,7 @@ const Reset = () => {
             <Button 
               type="primary" 
               className="submit-button"
-              onClick={handleProfileSubmit}
+              onClick={handleProfileSubmitDebounce}
               size="large"
               block
               loading={loading}
@@ -482,7 +488,7 @@ const Reset = () => {
             <Button 
               type="primary" 
               className="submit-button"
-              onClick={handleBackgroundSubmit}
+              onClick={handleBackgroundSubmitDebounce}
               size="large"
               block
               disabled={!profile?.background_url}
@@ -548,7 +554,7 @@ const Reset = () => {
             <Button 
               type="primary" 
               className="submit-button"
-              onClick={handleBannerSubmit}
+              onClick={handleBannerSubmitDebounce}
               size="large"
               block
               disabled={!profile?.banner_url}

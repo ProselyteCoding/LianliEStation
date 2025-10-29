@@ -9,6 +9,7 @@ import logo from "../../assets/logo.png";
 import takePlace from "../../assets/takePlace.png";
 import { useMainStore } from "../../store";
 import { useNavigate } from "react-router-dom";
+import { useDebounce,useDebouncedCallback } from '../../hooks/useDebounce'
 
 const Market = () => {
   const [searchInputs, setSearchInputs] = useState("");
@@ -183,6 +184,9 @@ const Market = () => {
     }, 300); // 与动画时长一致
   };
 
+  const handleSearchDebounce = useDebouncedCallback(handleSearch)
+  const handleOnConfirmDebounce = useDebouncedCallback(handleOnConfirm)
+
   return (
     <div className="market-container">
       <div className="market-navbar">
@@ -195,7 +199,7 @@ const Market = () => {
           value={searchInputs}
           onChange={handleChange}
         />
-        <div className="icon" onClick={handleSearch}>
+        <div className="icon" onClick={handleSearchDebounce}>
           <i className="iconfont icon-search"></i>
         </div>
       </div>
@@ -592,7 +596,7 @@ const Market = () => {
             </div>
 
             <div className="confirm">
-              <button onClick={handleOnConfirm}>确认</button>
+              <button onClick={handleOnConfirmDebounce}>确认</button>
             </div>
           </div>
         )}

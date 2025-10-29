@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import Tabbar from "../../components/Tabbar/Tabbar";
 import logo from "../../assets/logo.png";
 import ForumBanner from "../../assets/banner2.png";
+import { useDebounce,useDebouncedCallback } from '../../hooks/useDebounce'
 import ADInviting from "../../assets/ad3.3-logo.png";
 
 const Forum = () => {
@@ -90,6 +91,8 @@ const Forum = () => {
     }, 150); // 150ms 防抖延迟
   };
 
+  const handleSearchDebounce = useDebouncedCallback(handleSearch)
+  const handleOnConfirmDebounce = useDebouncedCallback(handleOnConfirm)
   return (
     <div className="forum-container">
       <div className="forum-navbar">
@@ -102,7 +105,7 @@ const Forum = () => {
           value={searchInputs}
           onChange={handleChange}
         />
-        <div className="icon" onClick={handleSearch}>
+        <div className="icon" onClick={handleSearchDebounce}>
           <i className="iconfont icon-search"></i>
         </div>
       </div>
@@ -389,7 +392,7 @@ const Forum = () => {
             </div>
 
             <div className="confirm">
-              <button onClick={handleOnConfirm}>确认</button>
+              <button onClick={handleOnConfirmDebounce}>确认</button>
             </div>
           </div>
         )}
