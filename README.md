@@ -28,7 +28,7 @@
     <br /><br />
     <a href="https://github.com/ProselyteCoding/LianliEStation"><strong>探索本项目的文档 »</strong></a>
     <br /><br />
-    <a href="http://47.94.198.49/">查看Demo</a>
+    <a href="https://www.lianliestation.xin/">访问网站</a>
     ·
     <a href="https://github.com/ProselyteCoding/LianliEStation/issues">报告Bug</a>
     ·
@@ -39,19 +39,22 @@
 
 ## 目录
 
-- [上手指南](#上手指南)
-  - [使用指南](#使用指南(访问网站，无需安装))
-  - [开发前的配置要求](#开发前的配置要求)
-  - [安装步骤](#安装步骤)
-- [文件目录说明](#文件目录说明)
-- [开发的架构](#开发的架构)
-- [部署](#部署)
-- [使用到的框架](#使用到的框架)
-- [贡献者](#贡献者)
-  - [如何参与开源项目](#如何参与开源项目)
-- [版本控制](#版本控制)
-- [作者](#作者)
-- [鸣谢](#鸣谢)
+- [LianliEStation 连理e站](#lianliestation-连理e站)
+  - [目录](#目录)
+    - [上手指南](#上手指南)
+      - [日常使用指南(访问网站，无需安装)](#日常使用指南访问网站无需安装)
+      - [开发前的配置要求](#开发前的配置要求)
+      - [安装步骤](#安装步骤)
+    - [文件目录说明](#文件目录说明)
+    - [开发的架构](#开发的架构)
+    - [部署](#部署)
+    - [使用到的框架](#使用到的框架)
+    - [贡献者](#贡献者)
+      - [如何参与开源项目](#如何参与开源项目)
+    - [版本控制](#版本控制)
+    - [作者](#作者)
+    - [版权说明](#版权说明)
+    - [鸣谢](#鸣谢)
 
 ### 上手指南
 
@@ -90,7 +93,96 @@ npm install
 ### 文件目录说明
 
 ```
-# 正在开发阶段，目录变化频繁，暂时不便给出
+frontend/
+├── public/                 # 静态资源
+│   ├── index.html         # HTML 模板
+│   ├── favicon.ico        # 网站图标
+│   └── robots.txt         # 搜索引擎配置
+│
+├── src/
+│   ├── components/        # 公共组件
+│   │   ├── Navbar/       # 导航栏组件
+│   │   ├── Tabbar/       # 底部导航栏
+│   │   ├── ImageCropper/ # 图片裁剪器
+│   │   └── NoticeModal/  # 通知弹窗
+│   │
+│   ├── pages/            # 页面组件
+│   │   ├── Login/        # 登录页
+│   │   ├── Market/       # 商城页
+│   │   ├── Forum/        # 校园墙页
+│   │   ├── User/         # 用户中心
+│   │   └── Admin/        # 管理员后台
+│   │
+│   ├── store/            # Zustand 状态管理
+│   │   ├── index.ts      # Store 导出
+│   │   ├── userStore.ts  # 用户状态
+│   │   ├── goodsStore.ts # 商品状态
+│   │   └── forumStore.ts # 校园墙状态
+│   │
+│   ├── api/              # API 调用层
+│   │   ├── index.ts      # Axios 实例配置
+│   │   └── api.md        # API 文档
+│   │
+│   ├── utils/            # 工具函数
+│   │   ├── format.ts     # 格式化函数
+│   │   ├── validate.ts   # 验证函数
+│   │   └── storage.ts    # 本地存储封装
+│   │
+│   ├── hooks/            # 自定义 Hooks
+│   │   ├── useAuth.ts    # 认证 Hook
+│   │   └── useFetch.ts   # 数据获取 Hook
+│   │
+│   ├── assets/           # 静态资源
+│   │   ├── images/       # 图片
+│   │   ├── icons/        # SVG 图标
+│   │   └── styles/       # 全局样式
+│   │
+│   ├── App.tsx           # 根组件
+│   ├── App.scss          # 根样式
+│   ├── index.js          # 入口文件
+│   └── declarations.d.ts # TypeScript 类型声明
+│
+├── package.json          # 依赖配置
+├── tsconfig.json         # TypeScript 配置
+└── README.md             # 前端文档
+
+server/
+├── routes/               # 路由模块
+│   ├── auth.js          # 认证路由 (登录/注册/密码)
+│   ├── users.js         # 用户路由
+│   ├── goods.js         # 商品路由
+│   ├── forum.js         # 校园墙路由
+│   ├── publish.js       # 发布路由
+│   ├── favorites.js     # 收藏路由
+│   ├── history.js       # 历史路由
+│   ├── messages.js      # 信箱路由
+│   ├── appeals.js       # 申诉路由
+│   ├── admin.js         # 管理员路由
+│   └── aiTemplate.js    # AI 模板路由
+│
+├── middlewares/         # 中间件
+│   ├── checkBan.js     # 封禁检查中间件
+│   ├── limiter.js      # 限流中间件
+│   ├── logIP.js        # IP 记录中间件
+│   ├── mailer.js       # 邮件服务
+│   └── uploadImg.js    # 图片上传中间件
+│
+├── oldRoutes/          # 旧版路由（已弃用）
+│   ├── appeals.js
+│   ├── campusWall.js
+│   ├── posts.js
+│   └── responses.js
+│
+├── public/             # 静态文件
+│   └── uploads/        # 上传的图片
+│       ├── avatars/    # 头像
+│       ├── banners/    # Banner
+│       └── goods/      # 商品图片
+│
+├── app.js              # 应用入口
+├── db.js               # 数据库连接配置
+├── package.json        # 依赖配置
+└── README.md           # 后端文档
 ```
 
 ### 开发的架构
@@ -99,7 +191,7 @@ npm install
 
 ### 部署
 
-IP地址: [47.94.198.49](http://47.94.198.49/)
+[https://www.lianliestation.xin/](https://www.lianliestation.xin/)
 
 ### 使用到的框架
 
@@ -132,8 +224,6 @@ Proselyte
 - 邮箱: fan042182@gmail.com 或 3197908785@qq.com
 - qq: 3197908785
 
-_您也可以在贡献者名单中参看所有参与该项目的开发者。_
-
 ### 版权说明
 
 该项目签署了 MIT 授权许可，详情请参阅 [LICENSE.txt](https://github.com/ProselyteCoding/LianliEStation/blob/main/LICENSE)
@@ -141,8 +231,6 @@ _您也可以在贡献者名单中参看所有参与该项目的开发者。_
 ### 鸣谢
 
 感谢所有为“连理e站”的设计、开发、测试、上线做出贡献的同学！特别感谢 **Wzy 学长** 和 **OurEDA 红色狐狸老师** 的支持与指导。
-
-
 
 <!-- links -->
 
