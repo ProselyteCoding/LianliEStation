@@ -107,8 +107,9 @@ interface MainState {
   
   // 商品相关方法
   fetchGoods: () => Promise<void>;
-  updateGoods: () => Promise<void>;
+  updateGoods: (page?:number) => Promise<void>;
   clearGoods: () => void;
+  getMarketPage:() => number;
   setGoodsFilters: (newFilters: Partial<GoodsFilters>) => void;
   clearGoodsFilters: () => void;
   publishMarketGoods: (
@@ -140,8 +141,9 @@ interface MainState {
   
   // 帖子相关方法
   fetchPosts: () => Promise<void>;
-  updatePosts: () => Promise<void>;
+  updatePosts: (page?:number) => Promise<void>;
   clearPosts: () => void;
+  getForumPage:() => number
   setPostFilters: (newFilters: Partial<PostFilters>) => void;
   clearPostFilters: () => void;
   publishForumPost: (
@@ -301,9 +303,11 @@ const useMainStore = create<MainState>()(
           set({ isForumLoading: false }); // 加载完成
         }
       },
-
+      getMarketPage:()=>{
+        return get().marketPage
+      },
       // 更新帖子列表（滚动加载更多）
-      updatePosts: async () => {
+      updatePosts: async (uploadPage?:number) => {
         // 如果正在加载更多或没有更多内容，直接返回
         if (get().isForumLoadingMore || !get().hasMorePosts) {
           if (!get().hasMorePosts) {
@@ -321,7 +325,7 @@ const useMainStore = create<MainState>()(
             params: {
               with_comments: true,
               limit: 16,
-              page: get().forumPage,
+              page: uploadPage?uploadPage:get().forumPage,
               keyword: get().postFilters.searchTerm,
               tag: get().postFilters.tag,
               campus_id: get().postFilters.campus_id,
@@ -331,6 +335,9 @@ const useMainStore = create<MainState>()(
             const data = response.data.posts;
             
             console.log(`成功加载第${get().forumPage}页，获取${data.length}个帖子`);
+            if(uploadPage){
+              set({forumPage:uploadPage})
+            }
             
             set((state) => ({
               posts: [...state.posts, ...data], // 追加新数据
@@ -376,6 +383,10 @@ const useMainStore = create<MainState>()(
             campus_id: null,
           },
         })),
+
+        getForumPage:()=>{
+          return get().forumPage
+        },
 
       // 发布帖子
       publishForumPost: async (
@@ -704,7 +715,7 @@ const useMainStore = create<MainState>()(
         })),
 
       // 更新商品列表（滚动加载更多）
-      updateGoods: async () => {
+      updateGoods: async (uploadPage?:number) => {
         // 如果正在加载更多或没有更多内容，直接返回
         if (get().isMarketLoadingMore || !get().hasMoreGoods) {
           if (!get().hasMoreGoods) {
@@ -720,7 +731,7 @@ const useMainStore = create<MainState>()(
         try {
           const response = await api.get("/api/goods", {
             params: {
-              page: get().marketPage,
+              page: uploadPage?uploadPage:get().marketPage,
               limit: 12,
               keyword: get().goodsFilters.searchTerm,
               goods_type: get().goodsFilters.goods_type,
@@ -736,6 +747,9 @@ const useMainStore = create<MainState>()(
             const data = response.data.goods;
             
             console.log(`成功加载第${get().marketPage}页，获取${data.length}个商品`);
+            if(uploadPage){
+              set({marketPage:uploadPage})
+            }
             
             set((state) => ({
               goods: [...state.goods, ...data], // 追加新数据

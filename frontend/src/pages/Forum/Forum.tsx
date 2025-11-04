@@ -12,6 +12,8 @@ import logo from "../../assets/logo.png";
 import ForumBanner from "../../assets/banner2.png";
 import { useDebounce,useDebouncedCallback } from '../../hooks/useDebounce'
 import ADInviting from "../../assets/ad3.3-logo.png";
+import { useScrollerStore } from "../../store";
+import { useLocation } from "react-router-dom";
 
 const Forum = () => {
   const navigate = useNavigate();
@@ -24,21 +26,33 @@ const Forum = () => {
     clearPosts,
     isForumLoadingMore,
     hasMorePosts,
+    getForumPage,
   } = useMainStore();
+  const location = useLocation()
+  const scrollerStore = useScrollerStore()
   const [searchInputs, setSearchInputs] = useState("");
   const [showMore, setShowMore] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
   const bodyRef = useRef<HTMLDivElement>(null);
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [scroller,setScroller] = useState<number>(0)
 
   useEffect(() => {
-    fetchPosts();
-    
+    const loadAndRestore = async () => {
+      await fetchPosts();  // 等待数据加载
+      await scrollerStore.updatePath(location.pathname);
+      const last_scroller = await scrollerStore.restoreMutiPage(fetchPosts);
+      setScroller(last_scroller)
+      bodyRef.current?.scrollTo(0,last_scroller)
+    };
+    loadAndRestore();
+
     // 清理函数：组件卸载时清除定时器
     return () => {
       if (scrollTimeoutRef.current) {
         clearTimeout(scrollTimeoutRef.current);
       }
+      scrollerStore.setPage(getForumPage())
     };
   }, [fetchPosts]);
 
@@ -67,6 +81,11 @@ const Forum = () => {
   };
 
   const handleScroll = () => {
+    if(bodyRef.current){
+      setScroller(bodyRef.current.scrollTop)
+      scrollerStore.setScroller(scroller || 0);
+    }
+
     // 如果正在加载或没有更多内容，直接返回
     if (isForumLoadingMore || !hasMorePosts) {
       return;
@@ -80,6 +99,7 @@ const Forum = () => {
     // 使用防抖，避免频繁触发
     scrollTimeoutRef.current = setTimeout(() => {
       // forum-body滚动到底部时加载更多
+
       if (bodyRef.current) {
         const { scrollHeight, scrollTop, clientHeight } = bodyRef.current;
 

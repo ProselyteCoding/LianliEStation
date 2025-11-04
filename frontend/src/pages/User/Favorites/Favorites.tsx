@@ -1,5 +1,5 @@
 import Navbar from "../../../components/Navbar/Navbar"
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import { useRecordStore } from "../../../store"
 import { Card, Dropdown, Empty } from "antd";
 import type { MenuProps } from "antd";
@@ -9,6 +9,8 @@ import { px2rem } from "../../../utils/rem"
 import "./Favorites.scss"
 import takePlace from "../../../assets/takePlace.png"
 import { useDebounce,useDebouncedCallback } from '../../../hooks/useDebounce'
+import {useScrollerStore} from "../../../store";
+import { useLocation } from "react-router-dom";
 
 type checkBox = { [number: number]: boolean }
 
@@ -20,11 +22,20 @@ const Favorites: React.FC = () => {
   const [isPosts, setIsPosts] = useState(false)
   const [currentType, setCurrentType] = useState("商品");
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const bodyRef = useRef<HTMLDivElement|null>(null)
+  const [scroller,setScroller] = useState<number>(0)
+  const scrollerStore = useScrollerStore()
+  const location = useLocation()
 
   useEffect(() => {
+    scrollerStore.updatePath(location.pathname)
+
     if (isAuthenticated) {
       getFavorites()
       console.log(favoritesGoods, favoritePosts)
+
+      const last_scroller = scrollerStore.restoreSinglePage()
+      bodyRef.current?.scrollTo(0,last_scroller)
     }
   }, [isAuthenticated, refreshTrigger])
 
@@ -94,6 +105,11 @@ const Favorites: React.FC = () => {
     }
   }
 
+  const handleScroll = () =>{
+    setScroller(bodyRef.current?.scrollTop || 0)
+    scrollerStore.setScroller(bodyRef.current?.scrollTop || 0)
+  }
+
   const handleOnDeleteDebounce = useDebouncedCallback(handleOnDelete)
 
   return (
@@ -121,7 +137,7 @@ const Favorites: React.FC = () => {
           </div>
         </div>
 
-        <div className="content">
+        <div className="content" ref={bodyRef} onScroll={handleScroll}>
           {
             !isPosts ? (
               favoritesGoods.length === 0 ? (

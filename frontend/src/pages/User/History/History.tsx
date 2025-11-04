@@ -5,10 +5,11 @@ import takePlace from "../../../assets/takePlace.png";
 import { Card, Dropdown, Empty, message } from "antd";
 import type { MenuProps } from "antd";
 import NoticeModal from "../../../components/NoticeModal/NoticeModal";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { px2rem } from "../../../utils/rem";
 import "./History.scss";
 import { useDebounce,useDebouncedCallback } from '../../../hooks/useDebounce'
+import {useScrollerStore} from "../../../store";
 
 type checkBox = { [number: number]: boolean };
 
@@ -29,6 +30,10 @@ const History = () => {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const navigate = useNavigate();
+  const scrollerStore = useScrollerStore()
+  const location = useLocation()
+  const [scroller,setScroller] = useState<number>(0)
+  const bodyRef = useRef<HTMLDivElement | null>(null)
 
   const items: MenuProps["items"] = [
     {
@@ -64,8 +69,12 @@ const History = () => {
   ];
 
   useEffect(() => {
+    scrollerStore.updatePath(location.pathname)
+
     if (isAuthenticated) {
       getHistory();
+      const last_scroller = scrollerStore.restoreSinglePage()
+      bodyRef.current?.scrollTo(0,last_scroller)
     }
   }, [isAuthenticated, refreshTrigger]); // refreshTrigger 变化时重新获取历史记录
 
@@ -84,6 +93,11 @@ const History = () => {
   const handleOnClick = () => {
     setIsVisible(!isVisible);
   };
+
+  const handleScroll = () =>{
+    setScroller(bodyRef.current?.scrollTop || 0)
+    scrollerStore.setScroller(bodyRef.current?.scrollTop || 0)
+  }
 
   const handleCheck = (id: number) => {
     setChecked({ ...checked, [id]: !checked[id] });
@@ -235,7 +249,7 @@ const History = () => {
           </div>
         </div>
 
-        <div className="content">
+        <div className="content" ref={bodyRef} onScroll={handleScroll}>
           {!isPosts ? (
             historyGoods.length === 0 ? (
               <div className="history-empty">
