@@ -287,10 +287,10 @@ const App: React.FC = () => {
           <Lazy.Entry />
         </div>
       )}
-
-      <React.Suspense fallback={<div style={{ display: 'none' }}>加载中...</div>}>
-        <RouterProvider router={isMobile ? mobileRouter : webRouter} />
-      </React.Suspense>
+        <React.Suspense fallback={<div style={{ display: 'none' }}>加载中...</div>}>
+          <RouterProvider router={isMobile ? mobileRouter : webRouter} />
+        </React.Suspense>
+      
       {/* 横屏提示蒙版 - 仅在移动端横屏时显示 */}
       {isMobile && showOrientationOverlay && (
         <SwitchDirection onClose={handleCloseOrientationOverlay} />

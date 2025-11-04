@@ -1,5 +1,6 @@
 import { useRef, useEffect, useState, useMemo } from "react";
 import { Carousel, Image, Skeleton, Empty } from "antd";
+import { useLocation } from "react-router-dom";
 import "./Market.scss";
 import "../../Icon.scss";
 import Tabbar from "../../components/Tabbar/Tabbar";
@@ -10,6 +11,7 @@ import takePlace from "../../assets/takePlace.png";
 import { useMainStore } from "../../store";
 import { useNavigate } from "react-router-dom";
 import { useDebounce,useDebouncedCallback } from '../../hooks/useDebounce'
+import {useScrollerStore} from "../../store";
 
 const Market = () => {
   const [searchInputs, setSearchInputs] = useState("");
@@ -24,12 +26,16 @@ const Market = () => {
     fetchGoods,
     isMarketLoadingMore,
     hasMoreGoods,
+    getMarketPage,
   } = useMainStore();
+  const scrollerStore = useScrollerStore()
   const [windowSize, setWindowSize] = useState({ width: window.innerWidth, height: window.innerHeight });
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const bodyRef = useRef<HTMLDivElement | null>(null);
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const navigate = useNavigate();
+  const location = useLocation()
+  const [scroller,setScroller] = useState<number>(0)
 
   // 获取当前的根字体大小（rem 基准值）
   const getRemBase = () => {
@@ -96,7 +102,14 @@ const Market = () => {
   }, [windowSize.width]);
 
   useEffect(() => {
-    fetchGoods();
+    const loadAndRestore = async () => {
+      await fetchGoods();  // 等待数据加载
+      await scrollerStore.updatePath(location.pathname);
+      const last_scroller = await scrollerStore.restoreMutiPage(updateGoods);
+      setScroller(last_scroller)
+      bodyRef.current?.scrollTo(0,last_scroller)
+    };
+    loadAndRestore();
 
     // 监听窗口尺寸变化
     const handleResize = () => {
@@ -111,6 +124,7 @@ const Market = () => {
       if (scrollTimeoutRef.current) {
         clearTimeout(scrollTimeoutRef.current);
       }
+      scrollerStore.setPage(getMarketPage())
     };
   }, [fetchGoods]);
 
@@ -131,6 +145,11 @@ const Market = () => {
   // }, []);
 
   const handleScroll = () => {
+    if(bodyRef.current){
+      setScroller(bodyRef.current.scrollTop)
+      scrollerStore.setScroller(scroller || 0);
+    }
+    
     // 如果正在加载或没有更多内容，直接返回
     if (isMarketLoadingMore || !hasMoreGoods) {
       return;
@@ -139,14 +158,12 @@ const Market = () => {
     // 清除之前的定时器
     if (scrollTimeoutRef.current) {
       clearTimeout(scrollTimeoutRef.current);
-    }
-    
+    }    
     // 使用防抖，避免频繁触发
     scrollTimeoutRef.current = setTimeout(() => {
       // market-body滚动到底部时加载更多
       if (bodyRef.current) {
         const { scrollHeight, scrollTop, clientHeight } = bodyRef.current;
-
         // 判断是否滚动到底部（提前100px触发，确保更早加载）
         if (scrollTop + clientHeight >= scrollHeight - 100) {
           updateGoods();
