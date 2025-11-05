@@ -88,6 +88,14 @@ interface MainState {
   goods: Goods[];
   posts: Post[];
   
+  // 缓存相关
+  cachedGoods: Goods[]; // 缓存的商品数据
+  cachedPosts: Post[]; // 缓存的帖子数据
+  cachedGoodsFilters: string | null; // 缓存的商品筛选条件（序列化后的字符串）
+  cachedPostFilters: string | null; // 缓存的帖子筛选条件（序列化后的字符串）
+  hasCachedMarket: boolean; // 是否有商城缓存
+  hasCachedForum: boolean; // 是否有论坛缓存
+  
   // 筛选器
   goodsFilters: GoodsFilters;
   postFilters: PostFilters;
@@ -104,6 +112,14 @@ interface MainState {
   
   // 通用清理方法
   clear: () => void;
+  
+  // 缓存相关方法
+  saveMarketCache: () => void; // 保存商城缓存
+  saveForumCache: () => void; // 保存论坛缓存
+  restoreMarketCache: () => boolean; // 恢复商城缓存，返回是否成功
+  restoreForumCache: () => boolean; // 恢复论坛缓存，返回是否成功
+  clearMarketCache: () => void; // 清空商城缓存
+  clearForumCache: () => void; // 清空论坛缓存
   
   // 商品相关方法
   fetchGoods: () => Promise<void>;
@@ -191,6 +207,14 @@ const useMainStore = create<MainState>()(
       goods: [],
       posts: [],
       
+      // 缓存相关
+      cachedGoods: [],
+      cachedPosts: [],
+      cachedGoodsFilters: null,
+      cachedPostFilters: null,
+      hasCachedMarket: false,
+      hasCachedForum: false,
+      
       // 筛选器
       goodsFilters: {
         searchTerm: null,
@@ -263,6 +287,100 @@ const useMainStore = create<MainState>()(
             campus_id: null,
           },
         })),
+
+      // ==================== 缓存相关方法 ====================
+      
+      // 保存商城缓存
+      saveMarketCache: () => {
+        const currentFilters = JSON.stringify(get().goodsFilters);
+        set({
+          cachedGoods: [...get().goods],
+          cachedGoodsFilters: currentFilters,
+          hasCachedMarket: true,
+        });
+        console.log('商城缓存已保存', { 
+          goodsCount: get().goods.length, 
+          page: get().marketPage,
+          filters: currentFilters 
+        });
+      },
+      
+      // 保存论坛缓存
+      saveForumCache: () => {
+        const currentFilters = JSON.stringify(get().postFilters);
+        set({
+          cachedPosts: [...get().posts],
+          cachedPostFilters: currentFilters,
+          hasCachedForum: true,
+        });
+        console.log('论坛缓存已保存', { 
+          postsCount: get().posts.length, 
+          page: get().forumPage,
+          filters: currentFilters 
+        });
+      },
+      
+      // 恢复商城缓存
+      restoreMarketCache: () => {
+        const currentFilters = JSON.stringify(get().goodsFilters);
+        const { cachedGoods, cachedGoodsFilters, hasCachedMarket } = get();
+        
+        // 检查是否有缓存且筛选条件相同
+        if (hasCachedMarket && cachedGoodsFilters === currentFilters && cachedGoods.length > 0) {
+          set({
+            goods: [...cachedGoods],
+          });
+          console.log('商城缓存恢复成功', { 
+            goodsCount: cachedGoods.length,
+            filters: currentFilters 
+          });
+          return true;
+        }
+        
+        console.log('商城缓存恢复失败或筛选条件已改变');
+        return false;
+      },
+      
+      // 恢复论坛缓存
+      restoreForumCache: () => {
+        const currentFilters = JSON.stringify(get().postFilters);
+        const { cachedPosts, cachedPostFilters, hasCachedForum } = get();
+        
+        // 检查是否有缓存且筛选条件相同
+        if (hasCachedForum && cachedPostFilters === currentFilters && cachedPosts.length > 0) {
+          set({
+            posts: [...cachedPosts],
+          });
+          console.log('论坛缓存恢复成功', { 
+            postsCount: cachedPosts.length,
+            filters: currentFilters 
+          });
+          return true;
+        }
+        
+        console.log('论坛缓存恢复失败或筛选条件已改变');
+        return false;
+      },
+      
+      // 清空商城缓存
+      clearMarketCache: () => {
+        set({
+          cachedGoods: [],
+          cachedGoodsFilters: null,
+          hasCachedMarket: false,
+        });
+        console.log('商城缓存已清空');
+      },
+      
+      // 清空论坛缓存
+      clearForumCache: () => {
+        set({
+          cachedPosts: [],
+          cachedPostFilters: null,
+          hasCachedForum: false,
+        });
+        console.log('论坛缓存已清空');
+      },
 
       // ==================== 帖子相关方法 ====================
 
@@ -360,12 +478,15 @@ const useMainStore = create<MainState>()(
       },
 
       // 清空帖子列表
-      clearPosts: () =>
+      clearPosts: () => {
+        // 清空帖子数据和缓存
+        get().clearForumCache();
         set(() => ({
           posts: [],
           forumPage: 1,
           hasMorePosts: true, // 重置hasMore状态
-        })),
+        }));
+      },
 
       // 设置帖子筛选器
       setPostFilters: async (newFilters) => {
@@ -688,12 +809,15 @@ const useMainStore = create<MainState>()(
       },
 
       // 清空商品列表
-      clearGoods: () =>
+      clearGoods: () => {
+        // 清空商品数据和缓存
+        get().clearMarketCache();
         set(() => ({
           goods: [],
           marketPage: 1,
           hasMoreGoods: true, // 重置hasMore状态
-        })),
+        }));
+      },
 
       // 设置商品筛选器
       setGoodsFilters: async (newFilters) => {

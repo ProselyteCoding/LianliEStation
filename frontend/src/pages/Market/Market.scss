@@ -625,7 +625,10 @@ $card-bg: #fff;
     
     .custom-float-button {
       position: absolute;
+      // 降级方案：不支持 dvh 的浏览器使用 px
       bottom: px2rem(25);
+      // 优先使用 dvh：动态视口高度，自动适应移动端地址栏显隐
+      bottom: calc(3dvh + px2rem(10));
       right: px2rem(25);
       width: px2rem(45);
       height: px2rem(45);
