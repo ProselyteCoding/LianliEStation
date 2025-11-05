@@ -7,13 +7,17 @@ interface ScrollerState {
   currentPath: string;
   currentPage: number;  // 当前页码（临时）
   currentScroller: number;  // 当前滚动（临时）
+  currentBannerHeight: number;  // 当前 banner 高度（临时）
   pageStates: Record<string, number>;  // 路径 → 页码
   scrollStates: Record<string, number>;  // 路径 → 滚动
+  bannerHeights: Record<string, number>;  // 路径 → banner 高度
   setPage: (page: number) => void;
   setScroller: (scroller: number) => void;
+  setBannerHeight: (height: number) => void;  // 设置 banner 高度
   updatePath: (path: string) => void;
   restoreMutiPage: (callback: CallbackFn) => Promise<number>;
   restoreSinglePage: () => number;  // 无 callback，简化
+  getBannerHeight: () => number;  // 获取当前路径的 banner 高度
 }
 
 const useScrollerStore = create<ScrollerState>()(
@@ -21,8 +25,10 @@ const useScrollerStore = create<ScrollerState>()(
       currentPath: '',
       currentPage: 1,
       currentScroller: 0,
+      currentBannerHeight: 0,
       pageStates: {},  // { '/page1': 3 }
       scrollStates: {},  // { '/page1': 100 }
+      bannerHeights: {},  // { '/page1': 200 }
       updatePath: (path: string) => {
         const oldPath = get().currentPath;
         if (oldPath) {
@@ -31,6 +37,7 @@ const useScrollerStore = create<ScrollerState>()(
             ...state,
             pageStates: { ...state.pageStates, [oldPath]: state.currentPage },
             scrollStates: { ...state.scrollStates, [oldPath]: state.currentScroller },
+            bannerHeights: { ...state.bannerHeights, [oldPath]: state.currentBannerHeight },
           }));
         }
         set({ currentPath: path });
@@ -50,6 +57,18 @@ const useScrollerStore = create<ScrollerState>()(
           currentScroller: scroller,
           scrollStates: { ...state.scrollStates, [currentPath]: scroller },
         }));
+      },
+      setBannerHeight: (height: number) => {
+        const currentPath = get().currentPath;
+        set((state) => ({
+          ...state,
+          currentBannerHeight: height,
+          bannerHeights: { ...state.bannerHeights, [currentPath]: height },
+        }));
+      },
+      getBannerHeight: () => {
+        const { currentPath, bannerHeights } = get();
+        return bannerHeights[currentPath] || 0;
       },
       restoreMutiPage: async (callback: CallbackFn) => {
         const { currentPath, pageStates } = get();

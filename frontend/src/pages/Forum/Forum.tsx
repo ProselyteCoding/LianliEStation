@@ -27,6 +27,8 @@ const Forum = () => {
     isForumLoadingMore,
     hasMorePosts,
     getForumPage,
+    restoreForumCache,
+    saveForumCache,
   } = useMainStore();
   const location = useLocation()
   const scrollerStore = useScrollerStore()
@@ -34,27 +36,92 @@ const Forum = () => {
   const [showMore, setShowMore] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
   const bodyRef = useRef<HTMLDivElement>(null);
+  const carouselWrapperRef = useRef<HTMLDivElement | null>(null); // banner 容器引用
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const initialScrollSet = useRef(false); // 标记是否已设置初始滚动位置
   const [scroller,setScroller] = useState<number>(0)
+  const [initialBannerHeight, setInitialBannerHeight] = useState<number | null>(null); // banner 初始高度
+
+  // bodyRef 的 callback，在元素挂载时立即设置滚动位置
+  const setBodyRef = (element: HTMLDivElement | null) => {
+    bodyRef.current = element;
+    
+    // 只在首次挂载时设置初始滚动位置
+    if (element && !initialScrollSet.current) {
+      const savedScroll = scrollerStore.scrollStates[location.pathname] || 0;
+      if (savedScroll > 0) {
+        // 立即设置滚动位置
+        element.scrollTop = savedScroll;
+        initialScrollSet.current = true;
+        console.log('设置初始滚动位置', savedScroll);
+        
+        // 根据滚动位置计算 banner 应该显示的高度
+        const savedBannerHeight = scrollerStore.getBannerHeight();
+        if (savedBannerHeight > 0) {
+          // 假设 banner 最大高度为 200px（根据实际情况调整）
+          const maxBannerHeight = 200;
+          // 如果保存的滚动位置超过 banner 高度，banner 应该被完全隐藏或压缩
+          const calculatedHeight = savedBannerHeight > 0 ? savedBannerHeight : maxBannerHeight;
+          setInitialBannerHeight(calculatedHeight);
+          console.log('设置初始 banner 高度', calculatedHeight);
+        }
+      }
+    }
+  };
 
   useEffect(() => {
     const loadAndRestore = async () => {
-      await fetchPosts();  // 等待数据加载
       await scrollerStore.updatePath(location.pathname);
-      const last_scroller = await scrollerStore.restoreMutiPage(fetchPosts);
-      setScroller(last_scroller)
-      bodyRef.current?.scrollTo(0,last_scroller)
+      
+      // 尝试恢复缓存
+      const cacheRestored = restoreForumCache();
+      
+      if (cacheRestored) {
+        // 缓存恢复成功，直接使用缓存数据并恢复滚动位置
+        console.log('使用论坛缓存数据，无需重新加载');
+        const last_scroller = await scrollerStore.restoreMutiPage(fetchPosts);
+        setScroller(last_scroller);
+        
+        // 直接滚动到保存的位置（不等待 banner 渲染）
+        // 这样可以避免 banner 从完整高度压缩的闪烁
+        bodyRef.current?.scrollTo(0, last_scroller);
+        
+        console.log('恢复滚动位置', {
+          saved: last_scroller,
+          savedBannerHeight: scrollerStore.getBannerHeight()
+        });
+      } else {
+        // 没有缓存，正常加载数据
+        console.log('无可用缓存，开始加载论坛数据');
+        await fetchPosts();  // 等待数据加载
+        const last_scroller = await scrollerStore.restoreMutiPage(fetchPosts);
+        setScroller(last_scroller);
+        bodyRef.current?.scrollTo(0, last_scroller);
+      }
     };
+    
     loadAndRestore();
+
+    // 保存 carousel ref 的引用，避免清理函数中的 ref 警告
+    const carouselWrapper = carouselWrapperRef.current;
 
     // 清理函数：组件卸载时清除定时器
     return () => {
       if (scrollTimeoutRef.current) {
         clearTimeout(scrollTimeoutRef.current);
       }
-      scrollerStore.setPage(getForumPage())
+      scrollerStore.setPage(getForumPage());
+      
+      // 保存当前 banner 高度
+      const bannerHeight = carouselWrapper?.offsetHeight || 0;
+      scrollerStore.setBannerHeight(bannerHeight);
+      console.log('保存 banner 高度', bannerHeight);
+      
+      // 离开页面时保存缓存
+      saveForumCache();
     };
-  }, [fetchPosts]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // 只在组件挂载时执行一次
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchInputs(e.target.value);
@@ -82,8 +149,9 @@ const Forum = () => {
 
   const handleScroll = () => {
     if(bodyRef.current){
-      setScroller(bodyRef.current.scrollTop)
-      scrollerStore.setScroller(scroller || 0);
+      const currentScroll = bodyRef.current.scrollTop;
+      setScroller(currentScroll);
+      scrollerStore.setScroller(currentScroll); // 使用当前值而不是 state
     }
 
     // 如果正在加载或没有更多内容，直接返回
@@ -130,12 +198,16 @@ const Forum = () => {
         </div>
       </div>
 
-      <div className="forum-body" ref={bodyRef} onScroll={handleScroll}>
+      <div className="forum-body" ref={setBodyRef} onScroll={handleScroll}>
         {/* 蒙版层 - 移到 body 内部 */}
         {showMore && <div className="overlay" onClick={handleCloseMore}></div>}
         
         {/* 轮播图 - 会被滚动隐藏 */}
-        <div className="carousel-wrapper">
+        <div 
+          className="carousel-wrapper" 
+          ref={carouselWrapperRef}
+          style={initialBannerHeight !== null ? { height: `${initialBannerHeight}px`, overflow: 'hidden' } : undefined}
+        >
           <Carousel autoplay className="carousel">
             <img
               className="carousel-item"
