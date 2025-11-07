@@ -288,7 +288,7 @@
     .function{
         display: flex;
         flex-direction: row;
-        justify-content: space-between;
+        justify-content: space-around;
         position: fixed;
         bottom: 0;
         width: 100%;
@@ -319,15 +319,6 @@
         .star{
             @include padding(10);
 
-            .icon{
-                img{
-                    width: px2rem(32);
-                }
-            }
-        }
-
-        .share{
-            @include padding(10);
             .icon{
                 img{
                     width: px2rem(32);

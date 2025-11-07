@@ -4,6 +4,7 @@ import { useLocation } from "react-router-dom";
 import "./Market.scss";
 import "../../Icon.scss";
 import Tabbar from "../../components/Tabbar/Tabbar";
+import Icon from "../../components/Icon/Icon";
 import MarketBanner from "../../assets/banner2.png";
 import ADInviting from "../../assets/ad3.3-logo.png";
 import logo from "../../assets/logo.png";
@@ -285,7 +286,7 @@ const Market = () => {
           onChange={handleChange}
         />
         <div className="icon" onClick={handleSearchDebounce}>
-          <i className="iconfont icon-search"></i>
+          <Icon name="search" size={32} />
         </div>
       </div>
 
@@ -766,7 +767,7 @@ const Market = () => {
 
       <div className="market-tabbar">
         <div className="custom-float-button" onClick={() => navigate("/publish/market-publish-choice")}>
-          <i className="iconfont icon-add plus-icon"></i>
+          <Icon name="add" size={24} className="plus-icon" />
         </div>
         <Tabbar initialIndex={0} />
       </div>

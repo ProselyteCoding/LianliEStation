@@ -8,6 +8,7 @@ import "../../Icon.scss";
 import { useMainStore } from "../../store";
 import { useNavigate } from "react-router-dom";
 import Tabbar from "../../components/Tabbar/Tabbar";
+import Icon from "../../components/Icon/Icon";
 import logo from "../../assets/logo.png";
 import ForumBanner from "../../assets/banner2.png";
 import { useDebounce,useDebouncedCallback } from '../../hooks/useDebounce'
@@ -194,7 +195,7 @@ const Forum = () => {
           onChange={handleChange}
         />
         <div className="icon" onClick={handleSearchDebounce}>
-          <i className="iconfont icon-search"></i>
+          <Icon name="search" size={32} />
         </div>
       </div>
 
@@ -575,11 +576,11 @@ const Forum = () => {
 
                 <div className="post-footer">
                   <div className="stat-item">
-                    <i className="iconfont icon-like2"></i>
+                    <Icon name="like2" size={18} />
                     <span>{post.likes}</span>
                   </div>
                   <div className="stat-item">
-                    <span>💬</span>
+                    <Icon name="post" size={18} />
                     <span>
                       {post.comments?.reduce((total, comment) => {
                         return total + 1 + (comment.replies?.length || 0);
@@ -611,7 +612,7 @@ const Forum = () => {
 
       <div className="forum-tabbar">
         <div className="custom-float-button" onClick={() => navigate(`/publish/forum-publish`)}>
-          <i className="iconfont icon-add plus-icon"></i>
+          <Icon name="add" size={24} className="plus-icon" />
         </div>
         <Tabbar initialIndex={1} />
       </div>

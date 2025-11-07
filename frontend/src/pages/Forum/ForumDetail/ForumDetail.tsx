@@ -8,6 +8,7 @@ import { Carousel } from 'antd';
 import dayjs from 'dayjs';
 import ChatInput from '../../../components/Comment/ChatInput';
 import { useDebounce,useDebouncedCallback } from '../../../hooks/useDebounce'
+import Icon from '../../../components/Icon/Icon';
 
 const ForumDetail = () => {
     const location = useLocation();
@@ -197,8 +198,8 @@ const ForumDetail = () => {
         <div className='forum-detail'>
 
             <div className='forum-navbar'>
-                <i className='navbar-icon iconfont icon-left' onClick={() => navigate('/forum')}></i>
-                <i className='navbar-icon iconfont icon-share' onClick={share}></i>
+                <Icon name="left" size={32} className='navbar-icon' onClick={() => navigate('/forum')} />
+                <Icon name="share" size={32} className='navbar-icon' onClick={share} />
             </div>
 
             <div className='content'>
@@ -342,19 +343,13 @@ const ForumDetail = () => {
 
                 <div className="like">
                     <div className="icon">
-                        <i className={`iconfont ${likeState ? 'icon-liked2' : 'icon-like2'}`} onClick={likeDebounce}></i>
+                        <Icon name={likeState ? 'liked2' : 'like2'} size={32} onClick={likeDebounce} />
                     </div>
                 </div>
 
                 <div className='star'>
                     <div className="icon">
-                        <i className={`iconfont ${forumState ? 'icon-favorited' : 'icon-favorite'}`} onClick={starDebounce}></i>
-                    </div>
-                </div>
-
-                <div className="share">
-                    <div className='icon'>
-                        <i className="iconfont icon-share" onClick={share}></i>
+                        <Icon name={forumState ? 'favorited' : 'favorite'} size={32} onClick={starDebounce} />
                     </div>
                 </div>
             </div>

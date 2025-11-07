@@ -1,0 +1,32 @@
+/**
+ * Icon 组件样式
+ */
+
+.icon-svg {
+  display: inline-block;
+  vertical-align: middle;
+  flex-shrink: 0; // 防止在 flex 容器中被压缩
+  user-select: none; // 禁止选中
+  
+  // 确保图标居中
+  object-fit: contain;
+  
+  // 如果有点击事件，显示指针
+  &[onclick] {
+    cursor: pointer;
+  }
+}
+
+// 确保 iconfont 图标的默认样式
+.iconfont {
+  display: inline-block;
+  vertical-align: middle;
+  flex-shrink: 0;
+  user-select: none;
+  line-height: 1;
+  
+  // 如果有点击事件，显示指针
+  &[onclick] {
+    cursor: pointer;
+  }
+}

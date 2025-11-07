@@ -1328,61 +1328,187 @@ router.get('/wx-config', async (req, res) => {
 
 ---
 
-### 5. 字体图标使用方法
+### 5. 图标系统设计
 
-项目使用字体图标系统，所有图标已打包为 woff、ttf 文件格式。
+项目采用统一的图标管理系统，支持 SVG 和 iconfont 双方案，通过环境变量灵活切换。
 
-#### 图标添加
+#### 系统架构
 
-字体图标已打包为 woff、ttf 文件，若需添加图标请联系 Unicorn。
+**核心组件**：
+- `Icon.tsx` - 统一图标组件
+- `iconConfig.ts` - 图标配置中心
+- `assets/*.svg` - SVG 图标资源
+- `assets/fonts/` - iconfont 字体文件
+
+**技术特性**：
+- 双方案支持：SVG（默认）/ iconfont 可切换
+- 响应式设计：使用 `px2rem` 确保跨设备一致性
+- 类型安全：TypeScript 类型约束
+- 别名系统：简化常用图标命名
 
 #### 图标使用
 
-**使用步骤**：
-
-1. **导入样式文件**
-   - 在页面中先导入 `Icon.scss` 文件
-
-2. **添加图标元素**
-   - 添加 `<i>` 标签
-   - 将其 `className` 命名为 `"iconfont icon-name"`（自选图标名）
-
-3. **样式定制**
-   - 样式请在 `Icon.scss` 文件中更改
-   - 若同一图标需使用多种样式，请在 `Icon.scss` 中用同一 content 重新创建一个新图标命名后再修改
-
-**示例**：
+**基本用法**：
 ```tsx
-import './Icon.scss';
+import Icon from '@/components/Icon/Icon';
 
-function Component() {
-  return (
-    <i className="iconfont icon-shopping-bag"></i>
-  );
+// 基础使用
+<Icon name="search" size={24} />
+
+// 带颜色（仅 iconfont）
+<Icon name="like" size={20} color="#ff4d4f" />
+
+// 带事件
+<Icon name="share" size={32} onClick={handleShare} />
+
+// 动态图标
+<Icon name={isLiked ? 'liked' : 'like'} size={24} />
+```
+
+**方案切换**：
+- 修改 `.env` 文件中的 `REACT_APP_ICON_TYPE`
+- `svg` - SVG 图标（默认，适合多色图标）
+- `iconfont` - 字体图标（适合单色图标）
+
+#### 图标配置
+
+**添加新图标**（以 `heart` 为例）：
+
+1. 准备 SVG 文件：`assets/heart.svg`
+2. 在 `iconConfig.ts` 中导入并配置：
+```tsx
+import Heart from '../assets/heart.svg';
+
+export const iconMap = {
+  'heart': {
+    iconfont: 'icon-heart',  // iconfont 类名
+    svg: Heart,               // SVG 引用
+  },
+};
+```
+
+**图标别名**：
+```tsx
+'liked': {  // 简洁别名
+  iconfont: 'icon-like-active',
+  svg: LikedSvg,
+},
+```
+
+#### 图标分类
+
+**底部导航**：`market`、`forum`、`user`、`publish`（含 `-active` 状态）
+
+**用户功能**：`favorites`、`history`、`messages`、`settings`、`about`、`logout`
+
+**交互功能**：`like`、`dislike`、`star`、`share`、`copy`、`search`、`add`
+
+**内容类型**：`goods`、`post`、`comment`、`all`、`appeal`、`reply`
+
+**导航箭头**：`left`、`right`、`drop`
+
+#### 图标规范
+
+**命名规则**：
+- 基础名称：`search`、`like`、`star`
+- 状态后缀：`-active`、`-true`、`-false`
+- 颜色后缀：`-white`、`-black`
+- 语义别名：`liked`（已点赞）、`favorited`（已收藏）
+
+**尺寸建议**：
+- 导航图标：24-32px
+- 功能按钮：20-24px
+- 列表图标：16-20px
+
+**响应式**：
+- 所有 `size` 参数自动转换为 `rem` 单位
+- 基准：设计稿 375px = 37.5px = 1rem
+- 示例：`size={24}` → `0.64rem`
+
+#### 旧版迁移
+
+**从 iconfont 迁移**：
+```tsx
+// ❌ 旧方式
+<i className="iconfont icon-search" style={{ fontSize: '24px' }}></i>
+
+// ✅ 新方式
+<Icon name="search" size={24} />
+```
+
+**从 SVG 迁移**：
+```tsx
+// ❌ 旧方式
+import SearchIcon from 'assets/search.svg';
+<img src={SearchIcon} style={{ width: '24px' }} />
+
+// ✅ 新方式
+<Icon name="search" size={24} />
+```
+
+#### 注意事项
+
+- 新增图标必须在 `iconConfig.ts` 中配置
+- SVG 颜色可通过编辑 `fill` 属性修改
+- iconfont 颜色通过 `color` 属性控制
+- 动态图标使用三元表达式或条件渲染
+
+#### iconfont 字体更新方法
+
+当需要更新 iconfont 方案的图标时，按以下步骤操作：
+
+**1. 准备 SVG 图标**
+- 确保 SVG 文件路径清晰、无冗余代码
+- 建议使用单色 SVG（iconfont 不支持多色）
+- 统一图标尺寸和视口（推荐 1024x1024）
+
+**2. 使用 IcoMoon 生成字体**
+- 访问 [IcoMoon App](https://icomoon.io/app/)
+- 点击 "Import Icons" 导入 SVG 文件
+- 选择需要的图标，点击 "Generate Font"
+- 设置字体名称为 `icomoon`
+- 下载生成的字体包
+
+**3. 替换字体文件**
+```bash
+# 解压下载的字体包，将以下文件复制到项目
+fonts/
+  icomoon.woff   → frontend/src/assets/fonts/icomoon.woff
+  icomoon.ttf    → frontend/src/assets/fonts/icomoon.ttf
+  icomoon.svg    → frontend/src/assets/fonts/icomoon.svg
+  icomoon.eot    → frontend/src/assets/fonts/icomoon.eot
+```
+
+**4. 更新图标映射**
+
+从生成的 `style.css` 中获取新的 Unicode 编码，在 `Icon.scss` 中更新：
+```scss
+.icon-new-icon:before {
+  content: "\e921";  // 从 IcoMoon 生成的编码
 }
 ```
 
-#### 图标查询
+**5. 同步 iconConfig.ts**
 
-**查找图标**：
-- 所有样式名字均存在于 `Icon.scss` 中
-- 若不明白样式对应图标，可查看附件 `Map_Content_Icon`
-  - 该文件为 content 与图标的对照表
-  - 命名参考 `Icon.scss`
-  - 示例：`content: e917` 对应的图标为购物袋
+在 `iconConfig.ts` 中添加新图标配置：
+```tsx
+'new-icon': {
+  iconfont: 'icon-new-icon',  // 对应 Icon.scss 中的类名
+  svg: NewIconSvg,             // 同时配置 SVG 方案
+},
+```
 
-#### 常用图标
+**6. 保留 selection.json**
 
-| 图标名 | className | 用途 |
-|--------|-----------|------|
-| 购物袋 | `icon-shopping-bag` | 商城模块 |
-| 论坛 | `icon-forum` | 校园墙模块 |
-| 发布 | `icon-publish` | 发布功能 |
-| 消息 | `icon-message` | 信箱模块 |
-| 用户 | `icon-user` | 用户中心 |
-| 设置 | `icon-settings` | 设置页面 |
-| 收藏 | `icon-favorites` | 收藏功能 |
-| 历史 | `icon-history` | 历史记录 |
+将 IcoMoon 生成的 `selection.json` 保存到 `frontend/src/assets/selection.json`，用于：
+- 记录当前字体包包含的所有图标
+- 下次更新时可以导入此文件，保留现有图标
+
+**注意事项**：
+- 每次更新必须重新导入 `selection.json`，否则会丢失旧图标
+- 更新后需测试所有使用该图标的页面
+- 建议使用版本控制管理 `selection.json`
+- iconfont 图标名称与 SVG 图标保持一致
 
 ---
 

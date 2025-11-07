@@ -10,6 +10,7 @@ import { px2rem } from "../../../utils/rem";
 import "./History.scss";
 import { useDebounce,useDebouncedCallback } from '../../../hooks/useDebounce'
 import {useScrollerStore} from "../../../store";
+import Icon from "../../../components/Icon/Icon";
 
 type checkBox = { [number: number]: boolean };
 
@@ -49,7 +50,7 @@ const History = () => {
           商品
         </div>
       ),
-      icon: <i className="iconfont icon-goods"></i>,
+      icon: <Icon name="goods" size={18} />,
     },
     {
       key: "2",
@@ -64,7 +65,7 @@ const History = () => {
           帖子
         </div>
       ),
-      icon: <i className="iconfont icon-post"></i>,
+      icon: <Icon name="post" size={18} />,
     },
   ];
 
@@ -236,14 +237,14 @@ const History = () => {
           <div className="select-item">
             <Dropdown menu={{ items }}>
               <div onClick={(e) => e.preventDefault()} style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <i className="iconfont icon-more"></i>
+                <Icon name={isPosts ? "post" : "goods"} size={20} />
                 {currentType}
               </div>
             </Dropdown>
           </div>
           <div className="select-item" onClick={() => handleOnClick()}>
             <div className="select-item-btn">
-              <i className="iconfont icon-manage"></i>
+              <Icon name="manage" size={20} />
               管理
             </div>
           </div>

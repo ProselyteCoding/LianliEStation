@@ -8,6 +8,7 @@ import "./Detail.scss";
 import "../../../Icon.scss";
 import takePlace from "../../../assets/takePlace.png";
 import { useDebounce,useDebouncedCallback } from '../../../hooks/useDebounce'
+import Icon from "../../../components/Icon/Icon";
 
 interface Goods {
   id: number;
@@ -234,14 +235,18 @@ const Detail = () => {
   return (
     <div className="detail-container">
       <div className="detail-navbar">
-        <i
-          className="navbar-icon iconfont icon-left"
+        <Icon
+          name="left"
+          size={32}
+          className="navbar-icon"
           onClick={() => navigate("/market")}
-        ></i>
-        <i
-          className="navbar-icon iconfont icon-share"
+        />
+        <Icon
+          name="share"
+          size={32}
+          className="navbar-icon"
           onClick={handleShare}
-        ></i>
+        />
       </div>
       <div className="detail-slider">
         <Image.PreviewGroup>
@@ -298,16 +303,20 @@ const Detail = () => {
         {isMine === "user" && (
           <div className="alter-user">
             <div className="user-like">
-              <i
-                className={`like-icon iconfont ${isLiked ? 'icon-liked' : 'icon-like'}`}
+              <Icon
+                name={isLiked ? 'liked' : 'like'}
+                size={32}
+                className="like-icon"
                 onClick={handleLikeDebounce}
-              ></i>
+              />
               <div className="like-text">{currentGoods?.likes}</div>
             </div>
             <div className="user-dislike" onClick={() => handleDislikeDebounce()}>
-              <i
-                className={`dislike-icon iconfont ${isDisliked ? 'icon-disliked' : 'icon-dislike'}`}
-              ></i>
+              <Icon
+                name={isDisliked ? 'disliked' : 'dislike'}
+                size={32}
+                className="dislike-icon"
+              />
               <div className="dislike-text">{currentGoods?.complaints}</div>
             </div>
           </div>
@@ -315,28 +324,32 @@ const Detail = () => {
         {isMine === "manage" && (
           <div className="alter-manage">
             <div className="manage-like" onClick={handleLikeDebounce}>
-              <i
-                className={`like-icon iconfont ${isLiked ? 'icon-like-true' : 'icon-like-false'}`}
-              ></i>
+              <Icon
+                name={isLiked ? 'like-true' : 'like-false'}
+                size={32}
+                className="like-icon"
+              />
               <div className="like-text">{currentGoods?.likes}</div>
             </div>
             <div className="manage-dislike" onClick={handleDislikeDebounce}>
-              <i
-                className={`dislike-icon iconfont ${isDisliked ? 'icon-dislike-true' : 'icon-dislike-false'}`}
-              ></i>
+              <Icon
+                name={isDisliked ? 'dislike-true' : 'dislike-false'}
+                size={32}
+                className="dislike-icon"
+              />
               <div className="dislike-text">{currentGoods?.complaints}</div>
             </div>
-            <i className="manage-drop iconfont icon-drop"></i>
+            <Icon name="drop" size={24} className="manage-drop" />
           </div>
         )}
       </div>
       <div className="detail-btn">
         <div className="star-btn" onClick={handleStarDebounce}>
-          <i className={`starBtn-icon iconfont ${isStared ? 'icon-favorited' : 'icon-favorite'}`}></i>
+          <Icon name={isStared ? 'favorited' : 'favorite'} size={24} className="starBtn-icon" />
           <div className="starBtn-text">加入收藏</div>
         </div>
         <div className="contact-btn" onClick={handleCopy}>
-          <i className="qqBtn-icon iconfont icon-copy"></i>
+          <Icon name="copy" size={24} className="qqBtn-icon" />
           <div className="qqBtn-text">立即联系！</div>
         </div>
       </div>
