@@ -3,6 +3,7 @@ import "./User.scss";
 import "../../Icon.scss"
 import { useUserStore } from "../../store";
 import { useNavigate, useLocation } from "react-router-dom";
+import Icon from "../../components/Icon/Icon";
 import avatarDefault from "../../assets/logo.png";
 import bannerDefault from "../../assets/background-wide.jpg";
 import { useState, useEffect } from "react";
@@ -230,26 +231,26 @@ const User = () => {
       </div>
       <div className="user-settings">
         <div className="user-item" onClick={() => navigate("/user/favorites")}>
-          <i className="iconfont icon-favorites item-icon"></i>
+          <Icon name="favorites" size={24} className="item-icon" />
           <div className="item-text">收藏</div>
-          <i className="right-icon iconfont icon-right" />
+          <Icon name="right" size={20} className="right-icon" />
         </div>
         <div className="user-item" onClick={() => navigate("/user/history")}>
-          <i className="iconfont icon-history item-icon"></i>
+          <Icon name="history" size={24} className="item-icon" />
           <div className="item-text">历史</div>
-          <i className="right-icon iconfont icon-right" />
+          <Icon name="right" size={20} className="right-icon" />
         </div>
         <div className="user-item" onClick={() => navigate("/user/messages")}>
-          <i className="iconfont icon-messages item-icon"></i>
+          <Icon name="messages" size={24} className="item-icon" />
           <div className="item-text">信箱</div>
-          <i className="right-icon iconfont icon-right" />
+          <Icon name="right" size={20} className="right-icon" />
         </div>
       </div>
       <div className="user-settings" onClick={() => navigate("/user/settings")}>
         <div className="user-item">
-          <i className="iconfont icon-settings item-icon"></i>
+          <Icon name="settings" size={24} className="item-icon" />
           <div className="item-text">设置</div>
-          <i className="right-icon iconfont icon-right" />
+          <Icon name="right" size={20} className="right-icon" />
         </div>
       </div>
       <Tabbar initialIndex={2} />

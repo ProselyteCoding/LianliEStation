@@ -10,6 +10,7 @@ import { Dropdown } from "antd";
 import { timeFormat } from "../../../utils/formatters";
 import { px2rem } from "../../../utils/rem";
 import takePlace from "../../../assets/takePlace.png";
+import Icon from "../../../components/Icon/Icon";
 
 interface Conditions {
   type: string;
@@ -76,7 +77,7 @@ const Messages = () => {
           全部
         </div>
       ),
-      icon: <i className="iconfont icon-all"></i>,
+      icon: <Icon name="all" size={18} />,
     },
     {
       key: "2",
@@ -90,7 +91,7 @@ const Messages = () => {
           申诉
         </div>
       ),
-      icon: <i className="iconfont icon-appeal"></i>,
+      icon: <Icon name="appeal" size={18} />,
     },
     {
       key: "3",
@@ -104,7 +105,7 @@ const Messages = () => {
           回复
         </div>
       ),
-      icon: <i className="iconfont icon-reply"></i>,
+      icon: <Icon name="reply" size={18} />,
     },
   ];
 
@@ -221,7 +222,7 @@ const Messages = () => {
           <div className="messages-control-item">
             <Dropdown menu={{ items }}>
               <div onClick={(e) => e.preventDefault()} style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <i className="iconfont icon-more"></i>
+                <Icon name={conditions.type === "all" ? "all" : conditions.type === "appeal" ? "appeal" : "reply"} size={20} />
                 {currentType}
               </div>
             </Dropdown>
@@ -235,9 +236,9 @@ const Messages = () => {
             <div className="messages-control-item-btn">
               {
                 conditions.read === false ? (
-                  <i className="iconfont icon-messages"></i>
+                  <Icon name="messages" size={20} />
                 ) : (
-                  <i className="iconfont icon-messages-read"></i>
+                  <Icon name="messages-read" size={20} />
                 )
               }
               <button>{conditions.read === false ? "未读" : "已读"}</button>

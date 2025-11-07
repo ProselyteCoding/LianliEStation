@@ -8,6 +8,7 @@ import "../../../Icon.scss";
 import { useMainStore, useUserStore } from "../../../store";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDebounce,useDebouncedCallback } from '../../../hooks/useDebounce'
+import Icon from "../../../components/Icon/Icon";
 
 type FileType = Parameters<GetProp<UploadProps, "beforeUpload">>[0];
 
@@ -85,10 +86,12 @@ const DetailAppeal = () => {
   
   return (
     <div className="appeal-container">
-      <i
-        className="appeal-cancel iconfont icon-left"
+      <Icon
+        name="left"
+        size={32}
+        className="appeal-cancel"
         onClick={() => navigate(`/market/${Number(id)}`)}
-      ></i>
+      />
       <div className="appeal-inform">
         很抱歉您遇到不愉快的商品体验，请详细描述您遇到的问题并建议上传相应的照片/截图作为证据，我们将为您维权！
       </div>

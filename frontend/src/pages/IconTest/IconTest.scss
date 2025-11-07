@@ -1,0 +1,164 @@
+/**
+ * 图标测试页面样式
+ */
+
+.icon-test-page {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+
+  .test-header {
+    margin-bottom: 40px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #e8e8e8;
+
+    h1 {
+      margin: 0 0 10px 0;
+      font-size: 32px;
+      color: #333;
+    }
+
+    .config-info {
+      font-size: 16px;
+      color: #666;
+
+      strong {
+        color: #0674c1;
+        font-size: 18px;
+        margin-left: 10px;
+      }
+    }
+  }
+
+  .test-section {
+    margin-bottom: 40px;
+
+    h2 {
+      margin: 0 0 20px 0;
+      font-size: 24px;
+      color: #333;
+      border-left: 4px solid #0674c1;
+      padding-left: 12px;
+    }
+
+    .icon-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 20px;
+      padding: 20px;
+      background: #f5f5f5;
+      border-radius: 8px;
+
+      .icon-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 20px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+
+        &.interactive {
+          cursor: pointer;
+
+          &:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+          }
+
+          &:active {
+            transform: translateY(-2px);
+          }
+        }
+
+        img, i {
+          margin-bottom: 10px;
+        }
+
+        span {
+          font-size: 12px;
+          color: #666;
+          text-align: center;
+          word-break: break-word;
+        }
+      }
+    }
+  }
+
+  .test-instructions {
+    margin-top: 60px;
+    padding: 30px;
+    background: #f0f9ff;
+    border-radius: 12px;
+    border: 1px solid #0674c1;
+
+    h3 {
+      margin: 0 0 15px 0;
+      font-size: 20px;
+      color: #0674c1;
+    }
+
+    p {
+      margin: 10px 0;
+      line-height: 1.6;
+      color: #333;
+
+      strong {
+        color: #0674c1;
+        font-size: 18px;
+        padding: 2px 8px;
+        background: white;
+        border-radius: 4px;
+      }
+    }
+
+    .code-block {
+      margin-top: 20px;
+
+      code {
+        background: white;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-family: 'Courier New', monospace;
+        color: #d63384;
+      }
+
+      pre {
+        background: #1e1e1e;
+        color: #d4d4d4;
+        padding: 15px;
+        border-radius: 8px;
+        overflow-x: auto;
+        font-family: 'Courier New', monospace;
+        font-size: 14px;
+        line-height: 1.5;
+        margin: 10px 0;
+      }
+    }
+  }
+}
+
+// 响应式设计
+@media (max-width: 768px) {
+  .icon-test-page {
+    padding: 15px;
+
+    .test-header h1 {
+      font-size: 24px;
+    }
+
+    .test-section {
+      h2 {
+        font-size: 20px;
+      }
+
+      .icon-grid {
+        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+        gap: 15px;
+        padding: 15px;
+      }
+    }
+  }
+}
