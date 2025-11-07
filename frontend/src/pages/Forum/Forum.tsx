@@ -28,7 +28,6 @@ const Forum = () => {
     isForumLoadingMore,
     hasMorePosts,
     getForumPage,
-    restoreForumCache,
     saveForumCache,
   } = useMainStore();
   const location = useLocation()
@@ -74,31 +73,21 @@ const Forum = () => {
     const loadAndRestore = async () => {
       await scrollerStore.updatePath(location.pathname);
       
-      // 尝试恢复缓存
-      const cacheRestored = restoreForumCache();
+      // 总是重新加载数据，确保显示最新内容
+      console.log('加载论坛数据');
       
-      if (cacheRestored) {
-        // 缓存恢复成功，直接使用缓存数据并恢复滚动位置
-        console.log('使用论坛缓存数据，无需重新加载');
-        const last_scroller = await scrollerStore.restoreMutiPage(fetchPosts);
-        setScroller(last_scroller);
-        
-        // 直接滚动到保存的位置（不等待 banner 渲染）
-        // 这样可以避免 banner 从完整高度压缩的闪烁
-        bodyRef.current?.scrollTo(0, last_scroller);
-        
-        console.log('恢复滚动位置', {
-          saved: last_scroller,
-          savedBannerHeight: scrollerStore.getBannerHeight()
-        });
-      } else {
-        // 没有缓存，正常加载数据
-        console.log('无可用缓存，开始加载论坛数据');
-        await fetchPosts();  // 等待数据加载
-        const last_scroller = await scrollerStore.restoreMutiPage(fetchPosts);
-        setScroller(last_scroller);
-        bodyRef.current?.scrollTo(0, last_scroller);
-      }
+      // 清空旧数据
+      clearPosts();
+      
+      // 加载第一页
+      await fetchPosts();
+      
+      // 恢复滚动位置（但不恢复多页数据，用户滚动时自动加载）
+      const last_scroller = scrollerStore.scrollStates[location.pathname] || 0;
+      setScroller(last_scroller);
+      bodyRef.current?.scrollTo(0, last_scroller);
+      
+      console.log('恢复滚动位置', last_scroller);
     };
     
     loadAndRestore();
