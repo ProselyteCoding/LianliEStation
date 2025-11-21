@@ -12,11 +12,10 @@ export const buildImageUrl = (imagePath: string): string => {
 };
 
 // 获取默认图片
-export const getDefaultImage = (type: 'avatar' | 'background' | 'placeholder'): string => {
+export const getDefaultImage = (type: 'avatar' | 'background'): string => {
   const defaults = {
     avatar: '/uploads/default_avatar.png',
-    background: '/uploads/default_background.png',
-    placeholder: '/assets/takePlace.png'
+    background: '/uploads/default_background.png'
   };
   return defaults[type];
 };

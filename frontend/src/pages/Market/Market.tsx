@@ -13,6 +13,7 @@ import { useMainStore } from "../../store";
 import { useNavigate } from "react-router-dom";
 import { useDebounce,useDebouncedCallback } from '../../hooks/useDebounce'
 import {useScrollerStore} from "../../store";
+import { formatPrice, getCampusShort } from "../../utils/formatters";
 
 const Market = () => {
   const [searchInputs, setSearchInputs] = useState("");
@@ -709,29 +710,50 @@ const Market = () => {
                   }}
                 >
                   <div className="commodity-img">
-                    <Image
-                      src={
-                        item.images[0]
-                          ? `${process.env.REACT_APP_API_URL ||
-                          "http://localhost:5000"
-                          }${item.images[0]}`
-                          : takePlace
-                      }
-                      alt="商品图片"
-                      preview={false}
-                      placeholder={
-                        <div style={{ width: '100%', aspectRatio: '1.3' }}>
-                          <Skeleton.Input active style={{ width: '100%', height: '100%' }} />
-                        </div>
-                      }
-                    />
-                  </div>
-                  <div className="commodity-title">{item.title}</div>
-                  <div className="commodity-bottom">
-                    <div className="commodity-price">{item.price}</div>
-                    {item.tag && item.tag !== "商品标签" && (
-                      <div className="commodity-tag">{item.tag}</div>
+                    {item.images[0] ? (
+                      <Image
+                        src={`${process.env.REACT_APP_API_URL || "http://localhost:5000"}${item.images[0]}`}
+                        alt="商品图片"
+                        preview={false}
+                        placeholder={
+                          <div style={{ width: '100%', aspectRatio: '1.3' }}>
+                            <Skeleton.Input active style={{ width: '100%', height: '100%' }} />
+                          </div>
+                        }
+                      />
+                    ) : (
+                      <div className="commodity-img-placeholder">
+                        <span 
+                          className="placeholder-text"
+                          data-length={
+                            item.title.length <= 6 ? 'short' :
+                            item.title.length <= 12 ? 'medium' :
+                            item.title.length <= 20 ? 'long' : 'extra-long'
+                          }
+                        >
+                          {item.title}
+                        </span>
+                      </div>
                     )}
+                  </div>
+                  {item.images[0] && <div className="commodity-title">{item.title}</div>}
+                  <div className="commodity-bottom">
+                    <div className="commodity-price">{formatPrice(item.price)}</div>
+                    <div className="commodity-tags">
+                      {item.goods_type && (
+                        <div className={`commodity-type ${item.goods_type === 'sell' ? 'type-sell' : 'type-receive'}`}>
+                          {item.goods_type === 'sell' ? '出' : '收'}
+                        </div>
+                      )}
+                      {item.campus_id && (
+                        <div className="commodity-campus">
+                          {getCampusShort(item.campus_id)}
+                        </div>
+                      )}
+                      {item.tag && item.tag !== "商品标签" && (
+                        <div className="commodity-tag">{item.tag}</div>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}

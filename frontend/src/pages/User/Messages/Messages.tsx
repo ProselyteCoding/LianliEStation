@@ -9,7 +9,6 @@ import type { MenuProps } from "antd";
 import { Dropdown } from "antd";
 import { timeFormat } from "../../../utils/formatters";
 import { px2rem } from "../../../utils/rem";
-import takePlace from "../../../assets/takePlace.png";
 import Icon from "../../../components/Icon/Icon";
 
 interface Conditions {
@@ -321,11 +320,6 @@ const Messages = () => {
                   </div>
                   <div className="appeal-row">
                     <div className="appeal-content">{message.content}</div>
-                    <Image
-                      className="appeal-image"
-                      src={takePlace}
-                      alt="图片"
-                    ></Image>
                   </div>
                 </div>
               ) : (
@@ -389,11 +383,6 @@ const Messages = () => {
                   </div>
                   <div className="response-row">
                     <div className="response-content">{message.content}</div>
-                    <Image
-                      className="response-image"
-                      src={takePlace}
-                      alt="图片"
-                    ></Image>
                   </div>
                 </div>
               )}
