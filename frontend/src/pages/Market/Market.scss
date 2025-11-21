@@ -468,17 +468,23 @@ $card-bg: #fff;
 
     .content {
       display: flex;
-      flex-direction: row;
+      flex-direction: row;  // 横向排列列
       gap: px2rem(6);
-      flex-wrap: wrap;
       justify-content: flex-start;
       align-items: flex-start;
       @include padding(6);
-      padding-bottom: px2rem(20); // 添加底部padding
+      padding-bottom: px2rem(20);
       width: 100vw;
       box-sizing: border-box;
       background-color: $list-bg;
       flex-shrink: 0;
+      
+      // 瀑布流列容器
+      .masonry-column {
+        display: flex;
+        flex-direction: column;  // 列内从上到下排列
+        gap: px2rem(6);
+      }
       
       // 空状态容器
       .empty-container {
@@ -494,7 +500,8 @@ $card-bg: #fff;
         display: flex;
         flex-direction: column;
         background: $card-bg;
-        min-height: fit-content;
+        width: 100%;  // 占满列宽
+        height: auto;  // 容器高度自适应内容
         @include border-radius(5);
         @include padding(8);
         box-sizing: border-box;
@@ -538,53 +545,48 @@ $card-bg: #fff;
           img {
             width: 100%;
             height: auto;
-            aspect-ratio: 1.3;
-            object-fit: cover;
+            object-fit: contain;  // 保持原比例,不裁剪
+            max-height: 300px;  // 最大高度限制
             @include border-radius(4);
             transition: transform 0.2s ease;
           }
 
-          // 文字占位符样式 - 占据整个图片+标题区域
+          // 文字占位符样式 - 占据图片+标题区域
           .commodity-img-placeholder {
             width: 100%;
-            // 原图片高度 (aspect-ratio: 1.3) + 标题高度 (20px) + 间距 (8px + 4px)
-            aspect-ratio: 1.15;  // 调整为更高，容纳更多内容
+            min-height: 120px;  // 减小最小高度
+            max-height: 220px;  // 减小最大高度
             display: flex;
             justify-content: center;
             align-items: center;
             background: linear-gradient(135deg, #e8f0f7 0%, #f5f7fa 100%);
             @include border-radius(4);
-            padding: px2rem(20);
-            margin-bottom: px2rem(4);  // 保持与 commodity-title 相同的底部间距
+            padding: px2rem(16);
 
             .placeholder-text {
               font-weight: 500;
               color: #5a6c7d;
               text-align: center;
-              line-height: 1.4;
+              line-height: 1.3;
               display: -webkit-box;
-              -webkit-line-clamp: 3;
+              -webkit-line-clamp: 3;  // 最多显示3行
               -webkit-box-orient: vertical;
               overflow: hidden;
               word-break: break-word;
               
               // 根据文字长度动态调整字号
-              // 1-6字: 22px
-              @include font-size(22);
+              @include font-size(18);  // 默认18px
               
-              // 7-12字: 20px
               &[data-length="medium"] {
-                @include font-size(20);
-              }
-              
-              // 13-20字: 18px
-              &[data-length="long"] {
-                @include font-size(18);
-              }
-              
-              // 20字以上: 16px
-              &[data-length="extra-long"] {
                 @include font-size(16);
+              }
+              
+              &[data-length="long"] {
+                @include font-size(14);
+              }
+              
+              &[data-length="extra-long"] {
+                @include font-size(13);
               }
             }
           }
@@ -740,6 +742,7 @@ $card-bg: #fff;
     }
   }
   
+  
   // 加载状态和无更多内容提示
   .loading-more,
   .no-more {
@@ -748,8 +751,10 @@ $card-bg: #fff;
     align-items: center;
     padding: px2rem(20) 0;
     color: #999;
-    font-size: px2rem(14);
-    width: 100%; // 占满整个宽度
+    @include font-size(14);
+    width: 100vw; // 占满整个视口宽度
+    background-color: $list-bg;
+    margin-top: px2rem(-6); // 与 content 的 padding-bottom 对齐
     
     span {
       position: relative;

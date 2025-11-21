@@ -9,10 +9,10 @@ import { useMainStore } from "../../store";
 import { useNavigate } from "react-router-dom";
 import Tabbar from "../../components/Tabbar/Tabbar";
 import Icon from "../../components/Icon/Icon";
-import logo from "../../assets/logo.png";
-import ForumBanner from "../../assets/banner2.png";
+import logo from "../../assets/logo.webp";
+import ForumBanner from "../../assets/banner2.webp";
 import { useDebounce,useDebouncedCallback } from '../../hooks/useDebounce'
-import ADInviting from "../../assets/ad3.3-logo.png";
+import ADInviting from "../../assets/ad3.3-logo.webp";
 import { useScrollerStore } from "../../store";
 import { useLocation } from "react-router-dom";
 
@@ -40,7 +40,15 @@ const Forum = () => {
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const initialScrollSet = useRef(false); // 标记是否已设置初始滚动位置
   const [scroller,setScroller] = useState<number>(0)
-  const [initialBannerHeight, setInitialBannerHeight] = useState<number | null>(null); // banner 初始高度
+  
+  // TODO: Banner 初始高度计算功能暂时禁用，需要重新设计实现方案
+  // 问题：无法在组件初始化时准确获取 banner 高度，导致轮播图出现跳动
+  // const savedScroll = scrollerStore.scrollStates[location.pathname] || 0;
+  // const savedBannerHeight = scrollerStore.bannerHeights[location.pathname] || 0;
+  // const initialBannerHeight = (savedScroll > 0 && savedBannerHeight > 0) 
+  //   ? Math.max(0, savedBannerHeight - savedScroll) 
+  //   : null;
+  const initialBannerHeight = null;
 
   // bodyRef 的 callback，在元素挂载时立即设置滚动位置
   const setBodyRef = (element: HTMLDivElement | null) => {
@@ -54,17 +62,6 @@ const Forum = () => {
         element.scrollTop = savedScroll;
         initialScrollSet.current = true;
         console.log('设置初始滚动位置', savedScroll);
-        
-        // 根据滚动位置计算 banner 应该显示的高度
-        const savedBannerHeight = scrollerStore.getBannerHeight();
-        if (savedBannerHeight > 0) {
-          // 假设 banner 最大高度为 200px（根据实际情况调整）
-          const maxBannerHeight = 200;
-          // 如果保存的滚动位置超过 banner 高度，banner 应该被完全隐藏或压缩
-          const calculatedHeight = savedBannerHeight > 0 ? savedBannerHeight : maxBannerHeight;
-          setInitialBannerHeight(calculatedHeight);
-          console.log('设置初始 banner 高度', calculatedHeight);
-        }
       }
     }
   };
@@ -92,9 +89,6 @@ const Forum = () => {
     
     loadAndRestore();
 
-    // 保存 carousel ref 的引用，避免清理函数中的 ref 警告
-    const carouselWrapper = carouselWrapperRef.current;
-
     // 清理函数：组件卸载时清除定时器
     return () => {
       if (scrollTimeoutRef.current) {
@@ -102,10 +96,7 @@ const Forum = () => {
       }
       scrollerStore.setPage(getForumPage());
       
-      // 保存当前 banner 高度
-      const bannerHeight = carouselWrapper?.offsetHeight || 0;
-      scrollerStore.setBannerHeight(bannerHeight);
-      console.log('保存 banner 高度', bannerHeight);
+      // banner 高度已在 handleScroll 中实时保存，此处不需要再次保存
       
       // 离开页面时保存缓存
       saveForumCache();
@@ -142,6 +133,19 @@ const Forum = () => {
       const currentScroll = bodyRef.current.scrollTop;
       setScroller(currentScroll);
       scrollerStore.setScroller(currentScroll); // 使用当前值而不是 state
+      
+      // TODO: Banner 高度保存功能暂时禁用
+      // if (carouselWrapperRef.current) {
+      //   const currentBannerHeight = scrollerStore.bannerHeights[location.pathname];
+      //   if (!currentBannerHeight || currentBannerHeight === 0) {
+      //     const bannerImage = carouselWrapperRef.current.querySelector('.carousel-item') as HTMLImageElement;
+      //     const bannerHeight = bannerImage?.offsetHeight || 0;
+      //     if (bannerHeight > 0) {
+      //       scrollerStore.setBannerHeight(bannerHeight);
+      //       console.log('[Forum] 首次保存 banner 高度:', bannerHeight);
+      //     }
+      //   }
+      // }
     }
 
     // 如果正在加载或没有更多内容，直接返回
@@ -196,7 +200,17 @@ const Forum = () => {
         <div 
           className="carousel-wrapper" 
           ref={carouselWrapperRef}
-          style={initialBannerHeight !== null ? { height: `${initialBannerHeight}px`, overflow: 'hidden' } : undefined}
+          style={
+            initialBannerHeight !== null 
+              ? { 
+                  height: `${initialBannerHeight}px`, 
+                  minHeight: `${initialBannerHeight}px`,
+                  maxHeight: `${initialBannerHeight}px`,
+                  overflow: 'hidden',
+                  transition: 'none' // 防止过渡动画
+                } 
+              : undefined
+          }
         >
           <Carousel autoplay className="carousel">
             <img
@@ -520,7 +534,7 @@ const Forum = () => {
                 return (
                 <div 
                   className={`post-card ${post.images.length > 0 ? 'has-images' : 'no-images'}`}
-                  key={post.id} 
+                  key={`post-${index}-${post.id}`} 
                   onClick={() => navigate(`/forum-detail?id=${post.id}`)}
                   // onClick={()=>console.log(posts)}
                 >

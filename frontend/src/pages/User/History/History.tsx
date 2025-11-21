@@ -3,6 +3,7 @@ import { useEffect, useState, useRef } from "react";
 import { useRecordStore, useUserStore } from "../../../store";
 import { Card, Dropdown, Empty, message } from "antd";
 import type { MenuProps } from "antd";
+import { ResponsiveImage } from "../../../components/ResponsiveImage";
 import NoticeModal from "../../../components/NoticeModal/NoticeModal";
 import { useLocation, useNavigate } from "react-router-dom";
 import { px2rem } from "../../../utils/rem";
@@ -276,9 +277,10 @@ const History = () => {
                     <div className="item-content">
                       <div className="item-img">
                         {goods.images[0] ? (
-                          <img
+                          <ResponsiveImage
                             src={`${process.env.REACT_APP_API_URL || "http://localhost:5000"}${goods.images[0]}`}
-                            alt=""
+                            alt={goods.title}
+                            size="medium"
                           />
                         ) : (
                           <div className="commodity-img-placeholder">
@@ -333,9 +335,10 @@ const History = () => {
                     <div className="item-content">
                       <div className="item-img">
                         {post.images[0] ? (
-                          <img
+                          <ResponsiveImage
                             src={`${process.env.REACT_APP_API_URL || "http://localhost:5000"}${post.images[0]}`}
-                            alt=""
+                            alt={post.title}
+                            size="medium"
                           />
                         ) : (
                           <div className="commodity-img-placeholder">

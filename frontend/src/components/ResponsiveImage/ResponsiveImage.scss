@@ -1,0 +1,42 @@
+.responsive-image-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #f5f5f5;  // 加载时的背景色
+}
+
+.responsive-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  
+  // 加载中: 完全透明
+  &.loading {
+    opacity: 0;
+  }
+  
+  // 加载完成: 渐显效果
+  &.loaded {
+    opacity: 1;
+    transition: opacity 0.3s ease-in-out;
+  }
+  
+  // 列表页缩略图 - 限制最大尺寸
+  &-thumb {
+    max-width: 200px;
+    max-height: 200px;
+  }
+  
+  // 列表页中图
+  &-medium {
+    max-width: 600px;
+    max-height: 600px;
+  }
+  
+  // 详情页大图
+  &-large {
+    max-width: 1200px;
+    max-height: 1200px;
+  }
+}

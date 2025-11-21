@@ -57,6 +57,7 @@
     "@types/react-dom": "^19.0.3",
     "@types/react-select": "^5.0.1",
     "@types/w3c-screen-orientation": "^1.0.6",
-    "sass": "^1.83.4"
+    "sass": "^1.83.4",
+    "sharp": "^0.34.5"
   }
 }

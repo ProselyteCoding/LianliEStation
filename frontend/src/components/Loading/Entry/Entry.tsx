@@ -1,12 +1,36 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import './Entry.scss'
-import { LOGO_BASE64, TITLE_BASE64 } from '../../../constants/base64Images'
+import logo from '../../../assets/logo.webp'
+import title from '../../../assets/title.webp'
 
-const Entry = () => {
+interface EntryProps {
+  onImagesLoaded?: () => void;
+}
+
+const Entry: React.FC<EntryProps> = ({ onImagesLoaded }) => {
+  const [logoLoaded, setLogoLoaded] = useState(false);
+  const [titleLoaded, setTitleLoaded] = useState(false);
+
+  useEffect(() => {
+    if (logoLoaded && titleLoaded && onImagesLoaded) {
+      onImagesLoaded();
+    }
+  }, [logoLoaded, titleLoaded, onImagesLoaded]);
+
   return (
     <div className='entry-container'>
-      <img className='entry-logo' src={LOGO_BASE64} alt="logo" />
-      <img className='entry-title' src={TITLE_BASE64} alt="title" />
+      <img 
+        className='entry-logo' 
+        src={logo} 
+        alt="logo" 
+        onLoad={() => setLogoLoaded(true)}
+      />
+      <img 
+        className='entry-title' 
+        src={title} 
+        alt="title" 
+        onLoad={() => setTitleLoaded(true)}
+      />
     </div>
   )
 }

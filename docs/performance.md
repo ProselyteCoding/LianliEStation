@@ -81,6 +81,8 @@ cwebp logo.png -o logo.webp -q 85
 
 **收益**: -770KB 首屏体积, LCP 提升 1-2s
 
+**注意**: 以上优化仅针对**项目静态资源**(logo、banner等)。用户上传图片的优化方案见 [第七章](#七用户上传图片优化方案前端部分)。
+
 ---
 
 ### 2.3 依赖库优化 ⚡ (30分钟 | -400KB)
@@ -507,5 +509,359 @@ npm run build
 | 图标请求数 | 50+ | **1** | -98% |
 | Lighthouse | ~60 | **90+** | +50% |
 | LCP | 5.0s | **2.0s** | -60% |
+
+---
+
+## 七、用户上传图片优化方案(前端部分)
+
+### 🎯 问题分析
+
+**静态资源 vs 用户上传图片**:
+
+| 类型 | 示例 | 当前处理 | 优化方案 |
+|------|------|---------|---------|
+| **静态资源** | logo.png, banner.png | 原始 PNG/JPG | ✅ 开发时转 WebP (见 2.2 节) |
+| **用户上传** | 商品图、头像、帖子配图 | 原图直接存储显示 | ⚠️ 需前后端配合优化 |
+
+**当前风险**:
+```tsx
+// 用户上传 iPhone 拍摄的照片
+// 尺寸: 4032x3024, 体积: 3-5MB
+// 直接显示在列表页,导致:
+// 1. LCP 劣化 +2-3s
+// 2. 移动端流量消耗巨大
+// 3. 服务器存储浪费
+```
+
+---
+
+### 🎨 前端优化策略
+
+#### 策略 1: 上传前压缩 (已实现 ✅)
+
+**当前已使用 `browser-image-compression`**:
+
+```tsx
+// hooks/useImageUpload.ts (已存在)
+import imageCompression from 'browser-image-compression';
+
+const compressedFile = await imageCompression(file, {
+  maxSizeMB: 1,              // 限制 1MB
+  maxWidthOrHeight: 1920,    // 最大尺寸 1920px
+  useWebWorker: true         // 使用 Web Worker
+});
+```
+
+**✅ 已实现收益**:
+- 4000x3000 (3MB) → 1920x1440 (800KB)
+- 减少上传流量 70%+
+- 用户端实时反馈
+
+**🔧 建议增强** (可选优化):
+
+```tsx
+// hooks/useImageUpload.ts - 增强版
+export async function compressImage(file: File, options = {}) {
+  const defaultOptions = {
+    maxSizeMB: 0.5,              // 降低到 500KB
+    maxWidthOrHeight: 1920,
+    useWebWorker: true,
+    fileType: 'image/jpeg',      // 统一转 JPEG
+    initialQuality: 0.85,        // 初始质量 85%
+  };
+
+  try {
+    const compressed = await imageCompression(file, {
+      ...defaultOptions,
+      ...options
+    });
+
+    // 如果压缩后仍超过限制,降低质量再压缩
+    if (compressed.size > 0.5 * 1024 * 1024) {
+      return await imageCompression(file, {
+        ...defaultOptions,
+        initialQuality: 0.75,
+        maxSizeMB: 0.5
+      });
+    }
+
+    return compressed;
+  } catch (error) {
+    console.error('图片压缩失败:', error);
+    return file; // 压缩失败返回原图
+  }
+}
+```
+
+**收益提升**:
+- 1MB → 500KB (再减少 50%)
+- 统一格式为 JPEG (避免 PNG 大体积)
+
+---
+
+#### 策略 2: 响应式图片显示 (前端组件)
+
+**问题**: 列表页不需要加载详情页的大图
+
+**解决**: 前端根据场景选择合适尺寸
+
+```tsx
+// components/ResponsiveImage/ResponsiveImage.tsx
+import React from 'react';
+import './ResponsiveImage.scss';
+
+interface ResponsiveImageProps {
+  src: string;           // 图片 URL
+  alt: string;
+  size?: 'thumb' | 'medium' | 'large';  // 使用场景
+  className?: string;
+}
+
+export const ResponsiveImage: React.FC<ResponsiveImageProps> = ({ 
+  src, 
+  alt, 
+  size = 'medium',
+  className 
+}) => {
+  // 如果后端支持多尺寸,可以根据 size 参数请求不同尺寸
+  // 当前先使用 CSS 优化
+  
+  return (
+    <img 
+      src={src} 
+      alt={alt}
+      className={`responsive-image responsive-image-${size} ${className}`}
+      loading="lazy"  // 懒加载
+      decoding="async"  // 异步解码
+    />
+  );
+};
+```
+
+```scss
+// components/ResponsiveImage/ResponsiveImage.scss
+.responsive-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  
+  // 列表页缩略图 - 限制最大尺寸
+  &-thumb {
+    max-width: 200px;
+    max-height: 200px;
+  }
+  
+  // 列表页中图
+  &-medium {
+    max-width: 600px;
+    max-height: 600px;
+  }
+  
+  // 详情页大图
+  &-large {
+    max-width: 1200px;
+    max-height: 1200px;
+  }
+}
+```
+
+**使用示例**:
+
+```tsx
+// Market.tsx - 列表页使用中图
+import { ResponsiveImage } from '../../components/ResponsiveImage';
+
+<div className="commodity-img">
+  {item.images[0] ? (
+    <ResponsiveImage 
+      src={item.images[0]} 
+      alt={item.title}
+      size="medium"  // 列表页用中图
+    />
+  ) : (
+    <div className="commodity-img-placeholder">...</div>
+  )}
+</div>
+
+// Detail.tsx - 详情页使用大图
+<ResponsiveImage 
+  src={images[currentIndex]} 
+  alt={goodsDetail.title}
+  size="large"  // 详情页用大图
+/>
+```
+
+**收益**:
+- 列表页加载速度提升 (CSS 限制渲染尺寸)
+- 统一图片加载策略 (lazy + async)
+- 为后端多尺寸方案预留接口
+
+---
+
+#### 策略 3: 图片懒加载增强
+
+**已有懒加载,进一步优化**:
+
+```tsx
+// utils/lazyImage.ts - 新增工具函数
+export function setupLazyLoading() {
+  // 检查浏览器支持
+  if ('loading' in HTMLImageElement.prototype) {
+    // 原生懒加载支持,无需额外处理
+    return;
+  }
+
+  // 降级方案: IntersectionObserver
+  const imageObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        const img = entry.target as HTMLImageElement;
+        const src = img.dataset.src;
+        if (src) {
+          img.src = src;
+          imageObserver.unobserve(img);
+        }
+      }
+    });
+  });
+
+  document.querySelectorAll('img[data-src]').forEach((img) => {
+    imageObserver.observe(img);
+  });
+}
+```
+
+**在 App.tsx 中初始化**:
+
+```tsx
+// App.tsx
+import { setupLazyLoading } from './utils/lazyImage';
+
+useEffect(() => {
+  setupLazyLoading();
+}, []);
+```
+
+---
+
+#### 策略 4: 占位符优化 (已实现 ✅)
+
+**当前已有文字占位符**:
+```tsx
+// 无图片时显示文字占位
+<div className="commodity-img-placeholder">
+  <span data-length={titleLength}>{item.title}</span>
+</div>
+```
+
+**收益**:
+- ✅ 删除 takePlace.png (1071KB)
+- ✅ 动态字体大小
+- ✅ 渐变背景
+
+**无需额外优化**
+
+---
+
+### 📋 前端职责总结
+
+| 优化项 | 当前状态 | 前端工作 | 后端工作 |
+|--------|---------|---------|---------|
+| **上传前压缩** | ✅ 已实现 | 可选增强(500KB限制) | - |
+| **响应式显示** | ❌ 未实现 | ✅ 创建 ResponsiveImage 组件 | - |
+| **懒加载** | ⚠️ 部分实现 | ✅ 增强兼容性 | - |
+| **占位符** | ✅ 已完成 | - | - |
+| **WebP 转换** | ❌ 未实现 | - | ⚠️ 后端负责 |
+| **多尺寸生成** | ❌ 未实现 | - | ⚠️ 后端负责 |
+
+---
+
+### 🎯 前端优化任务清单
+
+**本周可完成** (2小时):
+
+- [ ] **创建 ResponsiveImage 组件** (30分钟)
+  - 封装懒加载逻辑
+  - 根据场景选择尺寸
+  - 统一图片加载策略
+
+- [ ] **增强上传压缩** (30分钟)
+  - maxSizeMB: 1 → 0.5
+  - 统一转 JPEG 格式
+  - 二次压缩逻辑
+
+- [ ] **替换现有 img/Image** (1小时)
+  - Market.tsx: 使用 ResponsiveImage size="medium"
+  - Detail.tsx: 使用 ResponsiveImage size="large"
+  - Favorites/History: 使用 ResponsiveImage size="medium"
+
+**验证效果**:
+```bash
+# 1. 构建项目
+npm run build
+
+# 2. 检查打包体积
+# 应看到图片相关代码优化
+
+# 3. 测试上传
+# 上传 3MB 图片,应压缩到 <500KB
+```
+
+---
+
+### 🤝 前后端协作建议
+
+**后端同学需要实施** (供参考):
+
+1. **安装 Sharp 库** (Node.js 图片处理)
+   ```bash
+   npm install sharp
+   ```
+
+2. **上传接口返回多尺寸 URL**
+   ```js
+   // 后端返回格式
+   {
+     "success": true,
+     "images": {
+       "large": "/uploads/product-large.jpg",
+       "medium": "/uploads/product-medium.jpg", 
+       "thumb": "/uploads/product-thumb.jpg"
+     }
+   }
+   ```
+
+3. **前端适配** (后端完成后)
+   ```tsx
+   // 前端使用多尺寸
+   <ResponsiveImage 
+     src={item.images[0].medium}  // 列表页用中图
+     alt={item.title}
+   />
+   ```
+
+**预期收益** (前后端完成后):
+- 用户上传图片体积减少 **80-90%**
+- 列表页 LCP 改善 **1-2s**
+- 服务器存储成本降低 **60%**
+
+---
+
+### ⚠️ 注意事项
+
+1. **前端压缩限制**
+   - 仅能减少 50-70% 体积
+   - 无法生成多尺寸
+   - 移动端性能消耗
+
+2. **最佳实践**
+   - 前端: 上传前初步压缩 (减少上传流量)
+   - 后端: 生成多尺寸 + WebP (减少下载流量)
+   - 前端: 响应式选择尺寸 (优化加载速度)
+
+3. **兼容性**
+   - WebP 支持率 96%+ (2024)
+   - 需要 JPG 降级方案
+   - 前端已用 `<picture>` 标签支持
 
 ---

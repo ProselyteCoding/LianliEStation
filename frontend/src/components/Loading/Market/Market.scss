@@ -1,5 +1,21 @@
 $blue: #0674c1;
 
+@keyframes skeleton-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.skeleton-base {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s ease-in-out infinite;
+  border-radius: 4px;
+}
+
 .loading-market-container {
   width: 100vw;
   height: 100vh;
@@ -22,6 +38,29 @@ $blue: #0674c1;
     z-index: 1000;
     padding: 0 10px;
     box-sizing: border-box;
+    
+    .skeleton-nav-item {
+      @extend .skeleton-base;
+      
+      &.skeleton-circle {
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+      }
+      
+      &.skeleton-circle-sm {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+      }
+      
+      &.skeleton-search {
+        flex: 1;
+        height: 26px;
+        border-radius: 10px;
+        max-width: 60%;
+      }
+    }
   }
 
   .loading-banner {
@@ -33,11 +72,9 @@ $blue: #0674c1;
     background: #fff;
 
     .skeleton-banner {
+      @extend .skeleton-base;
       width: 100vw;
       height: calc(100vw / 3.3);
-      background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-      background-size: 200% 100%;
-      animation: loading 1.5s ease-in-out infinite;
     }
   }
 
@@ -55,64 +92,11 @@ $blue: #0674c1;
       flex-direction: row;
       align-items: center;
       gap: 10px;
-    }
-  }
-
-  .loading-list {
-    flex: 1;
-    width: 100%;
-    padding: 6px;
-    box-sizing: border-box;
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 6px;
-    overflow-y: auto;
-    padding-bottom: 65px;
-
-    .skeleton-commodity-item {
-      background: #fff;
-      border-radius: 5px;
-      padding: 8px;
-      box-sizing: border-box;
-      display: flex;
-      flex-direction: column;
-      min-height: fit-content;
-
-      // Ant Design Skeleton.Image 组件样式
-      .ant-skeleton-image {
-        display: block;
-        border-radius: 4px;
-        // 不设置 width 和 height，由组件的 inline style 控制
-      }
       
-      .ant-skeleton {
-        margin-top: 0;
-        margin-bottom: 4px;
+      .skeleton-tag-btn {
+        @extend .skeleton-base;
+        height: 25px;
       }
-      
-      .ant-skeleton-paragraph {
-        margin-top: 0;
-        margin-bottom: 4px;
-        
-        li {
-          height: 20px;
-        }
-      }
-      
-      // 价格和标签骨架屏容器
-      .skeleton-bottom {
-        display: flex;
-        justify-content: space-between;
-        margin-top: 4px; // 与真实布局一致
-      }
-    }
-
-    @media (min-width: 400px) {
-      grid-template-columns: repeat(3, 1fr);
-    }
-
-    @media (min-width: 600px) {
-      grid-template-columns: repeat(4, 1fr);
     }
   }
 
@@ -129,6 +113,13 @@ $blue: #0674c1;
     bottom: 0;
     background: $blue;
     z-index: 10000;
+    
+    .skeleton-tab-item {
+      @extend .skeleton-base;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+    }
   }
 }
 

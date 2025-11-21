@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from "react"
 import { useRecordStore } from "../../../store"
 import { Card, Dropdown, Empty } from "antd";
 import type { MenuProps } from "antd";
+import { ResponsiveImage } from "../../../components/ResponsiveImage";
 import NoticeModal from "../../../components/NoticeModal/NoticeModal"
 import { useUserStore } from "../../../store"
 import { px2rem } from "../../../utils/rem"
@@ -159,9 +160,10 @@ const Favorites: React.FC = () => {
                       <div className="item-content">
                         <div className='item-img'>
                           {goods.images && goods.images[0] ? (
-                            <img
+                            <ResponsiveImage
                               src={`${process.env.REACT_APP_API_URL || "http://localhost:5000"}${goods.images[0]}`}
-                              alt=""
+                              alt={goods.title}
+                              size="medium"
                             />
                           ) : (
                             <div className="commodity-img-placeholder">
@@ -216,9 +218,10 @@ const Favorites: React.FC = () => {
                       <div className="item-content">
                         <div className='item-img'>
                           {post.images && post.images[0] ? (
-                            <img
+                            <ResponsiveImage
                               src={`${process.env.REACT_APP_API_URL || "http://localhost:5000"}${post.images[0]}`}
-                              alt=""
+                              alt={post.title}
+                              size="medium"
                             />
                           ) : (
                             <div className="commodity-img-placeholder">

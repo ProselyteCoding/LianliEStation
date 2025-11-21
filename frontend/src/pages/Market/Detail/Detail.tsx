@@ -2,7 +2,8 @@ import { useMainStore, useUserStore,useRecordStore } from "../../../store";
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom"; // 使用 useParams 从路由获取参数
 import { timeFormat, formatPrice, getCampusShort, getCampusName } from "../../../utils/formatters";
-import { message, Image, Carousel } from "antd";
+import { message, Carousel } from "antd";
+import { ResponsiveImage } from "../../../components/ResponsiveImage";
 import "./Detail.scss";
 import "../../../Icon.scss";
 import { useDebounce,useDebouncedCallback } from '../../../hooks/useDebounce'
@@ -247,36 +248,35 @@ const Detail = () => {
         />
       </div>
       <div className="detail-slider">
-        <Image.PreviewGroup>
-          <Carousel>
-            {currentGoods?.images && currentGoods.images.length > 0 ? (
-              currentGoods.images.map((img, index) => (
-                <div key={index} className="carousel-item">
-                  <Image
-                    className="slider-item"
-                    src={`${process.env.REACT_APP_API_URL || "http://localhost:5000"}${img}`}
-                    alt={`image-${index}`}
-                  />
-                </div>
-              ))
-            ) : (
-              <div className="carousel-item">
-                <div className="commodity-img-placeholder-large">
-                  <span 
-                    className="placeholder-text-large"
-                    data-length={
-                      (currentGoods?.title || '').length <= 6 ? 'short' :
-                      (currentGoods?.title || '').length <= 12 ? 'medium' :
-                      (currentGoods?.title || '').length <= 20 ? 'long' : 'extra-long'
-                    }
-                  >
-                    {currentGoods?.title || '暂无图片'}
-                  </span>
-                </div>
+        <Carousel>
+          {currentGoods?.images && currentGoods.images.length > 0 ? (
+            currentGoods.images.map((img, index) => (
+              <div key={index} className="carousel-item">
+                <ResponsiveImage
+                  className="slider-item"
+                  src={`${process.env.REACT_APP_API_URL || "http://localhost:5000"}${img}`}
+                  alt={`image-${index}`}
+                  size="large"
+                />
+              </div>
+            ))
+          ) : (
+            <div className="carousel-item">
+              <div className="commodity-img-placeholder-large">
+                <span 
+                  className="placeholder-text-large"
+                  data-length={
+                    (currentGoods?.title || '').length <= 6 ? 'short' :
+                    (currentGoods?.title || '').length <= 12 ? 'medium' :
+                    (currentGoods?.title || '').length <= 20 ? 'long' : 'extra-long'
+                  }
+                >
+                  {currentGoods?.title || '暂无图片'}
+                </span>
+              </div>
               </div>
             )}
           </Carousel>
-        </Image.PreviewGroup>
       </div>
       <div className="detail-title">{currentGoods?.title}</div>
       <div className="detail-profile">
