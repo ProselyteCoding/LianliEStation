@@ -519,6 +519,7 @@ $card-bg: #fff;
           align-items: center;
           margin-bottom: px2rem(8);
           width: 100%;
+          position: relative; // 为骨架动画定位
           overflow: hidden;
           @include border-radius(4);
           background-color: #f8f9fa;
@@ -545,10 +546,23 @@ $card-bg: #fff;
           img {
             width: 100%;
             height: auto;
-            object-fit: contain;  // 保持原比例,不裁剪
-            max-height: 300px;  // 最大高度限制
+            display: block;
             @include border-radius(4);
             transition: transform 0.2s ease;
+            
+            // 图片加载时的骨架动画背景
+            background: linear-gradient(
+              90deg,
+              #f0f0f0 25%,
+              #e0e0e0 50%,
+              #f0f0f0 75%
+            );
+            background-size: 200% 100%;
+            
+            // 只在加载中显示动画
+            &:not([data-loaded="true"]) {
+              animation: skeleton-loading 1.5s ease-in-out infinite;
+            }
           }
 
           // 文字占位符样式 - 占据图片+标题区域
@@ -778,6 +792,15 @@ $card-bg: #fff;
   @keyframes spin {
     to {
       transform: rotate(360deg);
+    }
+  }
+  
+  @keyframes skeleton-loading {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
     }
   }
 }

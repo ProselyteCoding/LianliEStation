@@ -16,6 +16,30 @@ import ADInviting from "../../assets/ad3.3-logo.webp";
 import { useScrollerStore } from "../../store";
 import { useLocation } from "react-router-dom";
 
+// 骨架屏帖子生成函数
+const generateSkeletonPosts = (count: number) => {
+  return Array.from({ length: count }, (_, index) => (
+    <div key={index} className="skeleton-post-card">
+      <div className="skeleton-post-header">
+        <div className="skeleton-avatar" />
+        <div className="skeleton-author-name" />
+      </div>
+      <div className="skeleton-title" />
+      <div className="skeleton-content-line" />
+      <div className="skeleton-content-line short" />
+      <div className="skeleton-post-images">
+        <div className="skeleton-image-item" />
+        <div className="skeleton-image-item" />
+        <div className="skeleton-image-item" />
+      </div>
+      <div className="skeleton-likes">
+        <div className="skeleton-like-icon" />
+        <div className="skeleton-like-count" />
+      </div>
+    </div>
+  ));
+};
+
 const Forum = () => {
   const navigate = useNavigate();
   const { 
@@ -25,6 +49,7 @@ const Forum = () => {
     postFilters: filters,
     setPostFilters: setFilters,
     clearPosts,
+    isForumLoading,
     isForumLoadingMore,
     hasMorePosts,
     getForumPage,
@@ -496,12 +521,20 @@ const Forum = () => {
         {/* 帖子列表 */}
         <div className="content">
           {posts.length === 0 ? (
-            <div className="empty-container">
-              <Empty 
-                description="没有这一种类的帖子"
-                image={Empty.PRESENTED_IMAGE_SIMPLE}
-              />
-            </div>
+            isForumLoading ? (
+              // 正在加载中，显示骨架屏
+              <div className="skeleton-posts">
+                {generateSkeletonPosts(6)}
+              </div>
+            ) : (
+              // 加载完成但没有数据，显示空状态
+              <div className="empty-container">
+                <Empty 
+                  description="没有这一种类的帖子"
+                  image={Empty.PRESENTED_IMAGE_SIMPLE}
+                />
+              </div>
+            )
           ) : (
             <>
               {posts.map((post, index) => {

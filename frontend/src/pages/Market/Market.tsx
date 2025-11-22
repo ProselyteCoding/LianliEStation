@@ -1,5 +1,6 @@
 import { useRef, useEffect, useState, useMemo } from "react";
-import { Carousel, Skeleton, Empty } from "antd";
+import { Carousel, Empty } from "antd";
+import { SkeletonList } from "../../components/SkeletonItem";
 import { useLocation } from "react-router-dom";
 import "./Market.scss";
 import "../../Icon.scss";
@@ -26,6 +27,7 @@ const Market = () => {
     updateGoods,
     clearGoods,
     fetchGoods,
+    isMarketLoading,
     isMarketLoadingMore,
     hasMoreGoods,
     getMarketPage,
@@ -700,12 +702,18 @@ const Market = () => {
           }
         >
           {goods.length === 0 ? (
-            <div className="empty-container">
-              <Empty 
-                description="没有这一种类的商品"
-                image={Empty.PRESENTED_IMAGE_SIMPLE}
-              />
-            </div>
+            isMarketLoading ? (
+              // 正在加载中，显示骨架屏
+              <SkeletonList columns={elementsPerRow} count={8} gap={6} padding={6} />
+            ) : (
+              // 加载完成但没有数据，显示空状态
+              <div className="empty-container">
+                <Empty 
+                  description="没有这一种类的商品"
+                  image={Empty.PRESENTED_IMAGE_SIMPLE}
+                />
+              </div>
+            )
           ) : (
             <>
               {columnedGoods.columns.map((column, columnIndex) => (

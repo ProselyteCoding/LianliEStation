@@ -32,35 +32,9 @@ const Market = () => {
 
   return (
     <div className='loading-market-container'>
-      {/* 顶部导航栏骨架 */}
-      <div className="loading-navbar">
-        <div className="skeleton-nav-item skeleton-circle" />
-        <div className="skeleton-nav-item skeleton-search" />
-        <div className="skeleton-nav-item skeleton-circle-sm" />
-      </div>
-
-      {/* Banner 骨架 */}
-      <div className="loading-banner">
-        <div className="skeleton-banner" />
-      </div>
-
-      {/* 标签筛选骨架 */}
-      <div className="loading-tag">
-        <div className="tag-buttons">
-          {[40, 40, 50, 40, 40, 50].map((width, index) => (
-            <div key={index} className="skeleton-tag-btn" style={{ width: `${width}px` }} />
-          ))}
-        </div>
-      </div>
-
-      {/* 商品列表骨架 - 使用自定义 SkeletonList */}
-      <SkeletonList columns={elementsPerRow} count={8} gap={6} padding={6} />
-
-      {/* 底部 Tabbar 骨架 */}
-      <div className="loading-tabbar">
-        <div className="skeleton-tab-item" />
-        <div className="skeleton-tab-item" />
-        <div className="skeleton-tab-item" />
+      {/* 仅保留商品列表骨架 - 其他部分加载速度很快，不需要骨架 */}
+      <div className="skeleton-list-wrapper">
+        <SkeletonList columns={elementsPerRow} count={8} gap={6} padding={6} />
       </div>
     </div>
   )
