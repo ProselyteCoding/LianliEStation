@@ -83,18 +83,18 @@ const Market = () => {
   const elementsPerRow = useMemo(() => {
     const containerWidth = windowSize.width;
     
-    // 简化的列数计算逻辑
+    // 简化的列数计算逻辑 - 扩大两列的范围，适配更多手机屏幕
     let columns;
-    if (containerWidth < 400) {
-      columns = 2;
-    } else if (containerWidth < 600) {
-      columns = 3;
-    } else if (containerWidth < 800) {
-      columns = 4;
-    } else if (containerWidth < 1000) {
-      columns = 5;
+    if (containerWidth < 500) {
+      columns = 2;  // 500px 以下保持 2 列（覆盖大部分手机）
+    } else if (containerWidth < 700) {
+      columns = 3;  // 500-700px 用 3 列（小平板或横屏手机）
+    } else if (containerWidth < 900) {
+      columns = 4;  // 700-900px 用 4 列
+    } else if (containerWidth < 1100) {
+      columns = 5;  // 900-1100px 用 5 列
     } else {
-      columns = 6;
+      columns = 6;  // 1100px 以上用 6 列
     }
 
     // console.log('屏幕宽度:', containerWidth, '列数:', columns);
