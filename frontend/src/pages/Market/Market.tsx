@@ -1,18 +1,20 @@
 import { useRef, useEffect, useState, useMemo } from "react";
-import { Carousel, Image, Skeleton, Empty } from "antd";
+import { Carousel, Empty } from "antd";
+import { SkeletonList } from "../../components/SkeletonItem";
 import { useLocation } from "react-router-dom";
 import "./Market.scss";
 import "../../Icon.scss";
 import Tabbar from "../../components/Tabbar/Tabbar";
 import Icon from "../../components/Icon/Icon";
-import MarketBanner from "../../assets/banner2.png";
-import ADInviting from "../../assets/ad3.3-logo.png";
-import logo from "../../assets/logo.png";
-import takePlace from "../../assets/takePlace.png";
+import { ResponsiveImage } from "../../components/ResponsiveImage";
+import MarketBanner from "../../assets/banner2.webp";
+import ADInviting from "../../assets/ad3.3-logo.webp";
+import logo from "../../assets/logo.webp";
 import { useMainStore } from "../../store";
 import { useNavigate } from "react-router-dom";
 import { useDebounce,useDebouncedCallback } from '../../hooks/useDebounce'
 import {useScrollerStore} from "../../store";
+import { formatPrice, getCampusShort } from "../../utils/formatters";
 
 const Market = () => {
   const [searchInputs, setSearchInputs] = useState("");
@@ -25,6 +27,7 @@ const Market = () => {
     updateGoods,
     clearGoods,
     fetchGoods,
+    isMarketLoading,
     isMarketLoadingMore,
     hasMoreGoods,
     getMarketPage,
@@ -40,7 +43,15 @@ const Market = () => {
   const navigate = useNavigate();
   const location = useLocation()
   const [scroller,setScroller] = useState<number>(0)
-  const [initialBannerHeight, setInitialBannerHeight] = useState<number | null>(null); // banner 初始高度
+  
+  // TODO: Banner 初始高度计算功能暂时禁用，需要重新设计实现方案
+  // 问题：无法在组件初始化时准确获取 banner 高度，导致轮播图出现跳动
+  // const savedScroll = scrollerStore.scrollStates[location.pathname] || 0;
+  // const savedBannerHeight = scrollerStore.bannerHeights[location.pathname] || 0;
+  // const initialBannerHeight = (savedScroll > 0 && savedBannerHeight > 0) 
+  //   ? Math.max(0, savedBannerHeight - savedScroll) 
+  //   : null;
+  const initialBannerHeight = null;
 
   // bodyRef 的 callback，在元素挂载时立即设置滚动位置
   const setBodyRef = (element: HTMLDivElement | null) => {
@@ -54,84 +65,67 @@ const Market = () => {
         element.scrollTop = savedScroll;
         initialScrollSet.current = true;
         console.log('设置初始滚动位置', savedScroll);
-        
-        // 根据滚动位置计算 banner 应该显示的高度
-        const savedBannerHeight = scrollerStore.getBannerHeight();
-        if (savedBannerHeight > 0) {
-          // 假设 banner 最大高度为 200px（根据实际情况调整）
-          const maxBannerHeight = 200;
-          // 如果保存的滚动位置超过 banner 高度，banner 应该被完全隐藏或压缩
-          const calculatedHeight = savedBannerHeight > 0 ? savedBannerHeight : maxBannerHeight;
-          setInitialBannerHeight(calculatedHeight);
-          console.log('设置初始 banner 高度', calculatedHeight);
-        }
       }
     }
   };
 
-  // 获取当前的根字体大小（rem 基准值）
-  const getRemBase = () => {
-    const fontSize = parseFloat(getComputedStyle(document.documentElement).fontSize);
-    return fontSize || 37.5; // 默认 37.5px (对应 375px 屏幕宽度)
-  };
-
   // 计算商品项宽度（CSS calc 表达式）
   const getItemWidth = (columns: number) => {
-    // padding: 6px on each side = 12px total = 0.32rem
-    // gap: 6px between items = 0.16rem
-    const paddingRem = (6 / 37.5) * 2; // 0.32rem
-    const gapRem = 6 / 37.5; // 0.16rem
+    // padding: 6px on each side = 12px total
+    // gap: 6px between items
+    const paddingPx = 6 * 2; // 12px
+    const gapPx = 6; // 6px
     
-    return `calc((100vw - ${paddingRem}rem - ${columns - 1} * ${gapRem}rem) / ${columns})`;
+    return `calc((100vw - ${paddingPx}px - ${(columns - 1) * gapPx}px) / ${columns})`;
   };
 
   // 使用 useMemo 优化列数计算
   const elementsPerRow = useMemo(() => {
-    // 直接在这里调用 getRemBase，避免 lint 警告
-    const remBase = getRemBase();
+    const containerWidth = windowSize.width;
     
-    // 将 rem 单位转换为实际 px
-    const paddingPx = (6 / 37.5) * remBase * 2; // 左右 padding 各 6px
-    const gapPx = (6 / 37.5) * remBase; // gap 6px
-    
-    const containerWidth = windowSize.width - paddingPx;
-    const minItemWidth = (140 / 37.5) * remBase; // 最小商品项宽度 140px
-    const maxItemWidth = (220 / 37.5) * remBase; // 最大商品项宽度 220px
-
-    // 根据屏幕宽度设置响应式断点
+    // 简化的列数计算逻辑 - 扩大两列的范围，适配更多手机屏幕
     let columns;
-    if (containerWidth < (400 / 37.5) * remBase) {
-      // 小屏幕：2列
-      columns = 2;
-    } else if (containerWidth < (600 / 37.5) * remBase) {
-      // 中小屏幕：3列
-      columns = 3;
-    } else if (containerWidth < (800 / 37.5) * remBase) {
-      // 中等屏幕：4列
-      columns = 4;
+    if (containerWidth < 500) {
+      columns = 2;  // 500px 以下保持 2 列（覆盖大部分手机）
+    } else if (containerWidth < 700) {
+      columns = 3;  // 500-700px 用 3 列（小平板或横屏手机）
+    } else if (containerWidth < 900) {
+      columns = 4;  // 700-900px 用 4 列
+    } else if (containerWidth < 1100) {
+      columns = 5;  // 900-1100px 用 5 列
     } else {
-      // 大屏幕：根据最小宽度动态计算
-      columns = Math.floor((containerWidth + gapPx) / (minItemWidth + gapPx));
+      columns = 6;  // 1100px 以上用 6 列
     }
 
-    columns = Math.max(2, Math.min(columns, 6)); // 限制在2-6列之间
-
-    // 验证计算的宽度是否合理
-    const availableWidth = containerWidth - (columns - 1) * gapPx;
-    const itemWidth = availableWidth / columns;
-
-    // 如果计算出的宽度太大，增加列数
-    if (itemWidth > maxItemWidth && columns < 6) {
-      columns = Math.min(6, Math.floor((containerWidth + gapPx) / (maxItemWidth + gapPx)));
-    }
-
-    // 如果计算出的宽度太小，减少列数
-    if (itemWidth < minItemWidth && columns > 2) {
-      columns = Math.max(2, columns - 1);
-    }
-
+    // console.log('屏幕宽度:', containerWidth, '列数:', columns);
     return columns;
   }, [windowSize.width]);
+
+  // 计算分列后的商品数据
+  const columnedGoods = useMemo(() => {
+    const columns: typeof goods[] = Array.from({ length: elementsPerRow }, () => []);
+    const columnHeights = new Array(elementsPerRow).fill(0);
+
+    goods.forEach((item, index) => {
+      // 找到当前高度最小的列
+      const minHeightIndex = columnHeights.indexOf(Math.min(...columnHeights));
+      columns[minHeightIndex].push(item);
+      // 估算项目高度（图片高度 + 标题 + 底部信息 + 间距）
+      // 基础高度：padding 8*2 + 间距 8 = 24px
+      // 图片：有图约 200px，无图占位约 140px
+      // 标题：有图时显示约 20px
+      // 底部信息：约 30px
+      const baseHeight = 24;
+      const imageHeight = item.images[0] ? 200 : 140;
+      const titleHeight = item.images[0] ? 20 : 0;
+      const bottomHeight = 30;
+      const estimatedHeight = baseHeight + imageHeight + titleHeight + bottomHeight;
+      
+      columnHeights[minHeightIndex] += estimatedHeight;
+    });
+
+    return { columns, columnHeights };
+  }, [goods, elementsPerRow]);
 
   useEffect(() => {
     const loadAndRestore = async () => {
@@ -163,9 +157,6 @@ const Market = () => {
 
     window.addEventListener("resize", handleResize);
 
-    // 保存 carousel ref 的引用，避免清理函数中的 ref 警告
-    const carouselWrapper = carouselWrapperRef.current;
-
     return () => {
       window.removeEventListener("resize", handleResize);
       // 清理滚动定时器
@@ -174,10 +165,7 @@ const Market = () => {
       }
       scrollerStore.setPage(getMarketPage());
       
-      // 保存当前 banner 高度
-      const bannerHeight = carouselWrapper?.offsetHeight || 0;
-      scrollerStore.setBannerHeight(bannerHeight);
-      console.log('保存 banner 高度', bannerHeight);
+      // banner 高度已在 handleScroll 中实时保存，此处不需要再次保存
       
       // 离开页面时保存缓存
       saveMarketCache();
@@ -206,6 +194,19 @@ const Market = () => {
       const currentScroll = bodyRef.current.scrollTop;
       setScroller(currentScroll);
       scrollerStore.setScroller(currentScroll); // 使用当前值而不是 state
+      
+      // TODO: Banner 高度保存功能暂时禁用
+      // if (carouselWrapperRef.current) {
+      //   const currentBannerHeight = scrollerStore.bannerHeights[location.pathname];
+      //   if (!currentBannerHeight || currentBannerHeight === 0) {
+      //     const bannerImage = carouselWrapperRef.current.querySelector('.carousel-item') as HTMLImageElement;
+      //     const bannerHeight = bannerImage?.offsetHeight || 0;
+      //     if (bannerHeight > 0) {
+      //       scrollerStore.setBannerHeight(bannerHeight);
+      //       console.log('[Market] 首次保存 banner 高度:', bannerHeight);
+      //     }
+      //   }
+      // }
     }
     
     // 如果正在加载或没有更多内容，直接返回
@@ -221,9 +222,12 @@ const Market = () => {
     scrollTimeoutRef.current = setTimeout(() => {
       // market-body滚动到底部时加载更多
       if (bodyRef.current) {
-        const { scrollHeight, scrollTop, clientHeight } = bodyRef.current;
-        // 判断是否滚动到底部（提前100px触发，确保更早加载）
-        if (scrollTop + clientHeight >= scrollHeight - 100) {
+        const { scrollTop, clientHeight, scrollHeight } = bodyRef.current;
+        
+        // 简化逻辑：使用容器整体高度判断，提前 500px 触发
+        const distanceToBottom = scrollHeight - scrollTop - clientHeight;
+        
+        if (distanceToBottom < 500) {
           updateGoods();
         }
       }
@@ -287,7 +291,17 @@ const Market = () => {
         <div 
           className="carousel-wrapper" 
           ref={carouselWrapperRef}
-          style={initialBannerHeight !== null ? { height: `${initialBannerHeight}px`, overflow: 'hidden' } : undefined}
+          style={
+            initialBannerHeight !== null 
+              ? { 
+                  height: `${initialBannerHeight}px`, 
+                  minHeight: `${initialBannerHeight}px`,
+                  maxHeight: `${initialBannerHeight}px`,
+                  overflow: 'hidden',
+                  transition: 'none' // 防止过渡动画
+                } 
+              : undefined
+          }
         >
           <Carousel autoplay className="carousel">
             <img
@@ -688,70 +702,96 @@ const Market = () => {
           }
         >
           {goods.length === 0 ? (
-            <div className="empty-container">
-              <Empty 
-                description="没有这一种类的商品"
-                image={Empty.PRESENTED_IMAGE_SIMPLE}
-              />
-            </div>
+            isMarketLoading ? (
+              // 正在加载中，显示骨架屏
+              <SkeletonList columns={elementsPerRow} count={8} gap={6} padding={6} />
+            ) : (
+              // 加载完成但没有数据，显示空状态
+              <div className="empty-container">
+                <Empty 
+                  description="没有这一种类的商品"
+                  image={Empty.PRESENTED_IMAGE_SIMPLE}
+                />
+              </div>
+            )
           ) : (
             <>
-              {goods.map((item) => (
-                <div
-                  className="commodity-item"
-                  key={item.id}
-                  onClick={() => {
-                    navigate(`/market/${item.id}`);
-                  }}
-                  style={{
-                    width: getItemWidth(elementsPerRow),
-                    minHeight: 'fit-content',
-                  }}
-                >
-                  <div className="commodity-img">
-                    <Image
-                      src={
-                        item.images[0]
-                          ? `${process.env.REACT_APP_API_URL ||
-                          "http://localhost:5000"
-                          }${item.images[0]}`
-                          : takePlace
-                      }
-                      alt="商品图片"
-                      preview={false}
-                      placeholder={
-                        <div style={{ width: '100%', aspectRatio: '1.3' }}>
-                          <Skeleton.Input active style={{ width: '100%', height: '100%' }} />
+              {columnedGoods.columns.map((column, columnIndex) => (
+                <div key={`column-${columnIndex}`} className="masonry-column" style={{ width: getItemWidth(elementsPerRow) }}>
+                  {column.map((item, itemIndex) => (
+                    <div
+                      className="commodity-item"
+                      key={`${columnIndex}-${itemIndex}-${item.id}`}
+                      onClick={() => {
+                        navigate(`/market/${item.id}`);
+                      }}
+                    >
+                      <div className="commodity-img">
+                        {item.images[0] ? (
+                          <ResponsiveImage
+                            src={`${process.env.REACT_APP_API_URL || "http://localhost:5000"}${item.images[0]}`}
+                            alt={item.title}
+                            size="medium"
+                          />
+                        ) : (
+                          <div className="commodity-img-placeholder">
+                            <span 
+                              className="placeholder-text"
+                              data-length={
+                                item.title.length <= 6 ? 'short' :
+                                item.title.length <= 12 ? 'medium' :
+                                item.title.length <= 20 ? 'long' : 'extra-long'
+                              }
+                            >
+                              {item.title}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      {item.images[0] && <div className="commodity-title">{item.title}</div>}
+                      <div className="commodity-bottom">
+                        <div className="commodity-price">{formatPrice(item.price)}</div>
+                        <div className="commodity-tags">
+                          {item.goods_type && (
+                            <div className={`commodity-type ${item.goods_type === 'sell' ? 'type-sell' : 'type-receive'}`}>
+                              {item.goods_type === 'sell' ? '出' : '收'}
+                            </div>
+                          )}
+                          {item.campus_id && (
+                            <div className="commodity-campus">
+                              {getCampusShort(item.campus_id)}
+                            </div>
+                          )}
+                          {item.tag && item.tag !== "商品标签" && (
+                            <div className="commodity-tag">{item.tag}</div>
+                          )}
                         </div>
-                      }
-                    />
-                  </div>
-                  <div className="commodity-title">{item.title}</div>
-                  <div className="commodity-bottom">
-                    <div className="commodity-price">{item.price}</div>
-                    {item.tag && item.tag !== "商品标签" && (
-                      <div className="commodity-tag">{item.tag}</div>
-                    )}
-                  </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               ))}
-              
-              {/* 加载状态提示 */}
-              {isMarketLoadingMore && (
-                <div className="loading-more">
-                  <span>加载中...</span>
-                </div>
-              )}
-              
-              {/* 没有更多内容提示 */}
-              {!hasMoreGoods && goods.length > 0 && (
-                <div className="no-more">
-                  <span>没有更多商品了</span>
-                </div>
-              )}
             </>
           )}
         </div>
+        
+        {/* 加载状态提示 - 移到 content 外部 */}
+        {goods.length > 0 && (
+          <>
+            {isMarketLoadingMore && (
+              <div className="loading-more">
+                <span>加载中...</span>
+              </div>
+            )}
+            
+            {/* 没有更多内容提示 */}
+            {!hasMoreGoods && (
+              <div className="no-more">
+                <span>没有更多商品了</span>
+              </div>
+            )}
+          </>
+        )}
       </div>
 
       <div className="market-tabbar">

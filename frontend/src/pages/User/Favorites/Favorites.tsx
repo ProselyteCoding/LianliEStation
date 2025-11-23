@@ -3,11 +3,11 @@ import React, { useEffect, useRef, useState } from "react"
 import { useRecordStore } from "../../../store"
 import { Card, Dropdown, Empty } from "antd";
 import type { MenuProps } from "antd";
+import { ResponsiveImage } from "../../../components/ResponsiveImage";
 import NoticeModal from "../../../components/NoticeModal/NoticeModal"
 import { useUserStore } from "../../../store"
 import { px2rem } from "../../../utils/rem"
 import "./Favorites.scss"
-import takePlace from "../../../assets/takePlace.png"
 import { useDebounce,useDebouncedCallback } from '../../../hooks/useDebounce'
 import {useScrollerStore} from "../../../store";
 import { useLocation } from "react-router-dom";
@@ -159,14 +159,26 @@ const Favorites: React.FC = () => {
                     <Card className="item-description" title={goods.title} hoverable>
                       <div className="item-content">
                         <div className='item-img'>
-                          <img
-                            src={
-                              goods.images && goods.images[0]
-                                ? `${process.env.REACT_APP_API_URL || "http://localhost:5000"}${goods.images[0]}`
-                                : takePlace
-                            }
-                            alt=""
-                          />
+                          {goods.images && goods.images[0] ? (
+                            <ResponsiveImage
+                              src={`${process.env.REACT_APP_API_URL || "http://localhost:5000"}${goods.images[0]}`}
+                              alt={goods.title}
+                              size="medium"
+                            />
+                          ) : (
+                            <div className="commodity-img-placeholder">
+                              <span 
+                                className="placeholder-text"
+                                data-length={
+                                  goods.title.length <= 6 ? 'short' :
+                                  goods.title.length <= 12 ? 'medium' :
+                                  goods.title.length <= 20 ? 'long' : 'extra-long'
+                                }
+                              >
+                                {goods.title}
+                              </span>
+                            </div>
+                          )}
                         </div>
                         <div className="item-info">
                           <div className="item-detail">
@@ -205,14 +217,26 @@ const Favorites: React.FC = () => {
                     <Card className="item-description" title={post.title} hoverable>
                       <div className="item-content">
                         <div className='item-img'>
-                          <img
-                            src={
-                              post.images && post.images[0]
-                                ? `${process.env.REACT_APP_API_URL || "http://localhost:5000"}${post.images[0]}`
-                                : takePlace
-                            }
-                            alt=""
-                          />
+                          {post.images && post.images[0] ? (
+                            <ResponsiveImage
+                              src={`${process.env.REACT_APP_API_URL || "http://localhost:5000"}${post.images[0]}`}
+                              alt={post.title}
+                              size="medium"
+                            />
+                          ) : (
+                            <div className="commodity-img-placeholder">
+                              <span 
+                                className="placeholder-text"
+                                data-length={
+                                  post.title.length <= 6 ? 'short' :
+                                  post.title.length <= 12 ? 'medium' :
+                                  post.title.length <= 20 ? 'long' : 'extra-long'
+                                }
+                              >
+                                {post.title}
+                              </span>
+                            </div>
+                          )}
                         </div>
                         <div className="item-info">
                           <div className="item-detail">

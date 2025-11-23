@@ -468,17 +468,23 @@ $card-bg: #fff;
 
     .content {
       display: flex;
-      flex-direction: row;
+      flex-direction: row;  // 横向排列列
       gap: px2rem(6);
-      flex-wrap: wrap;
       justify-content: flex-start;
       align-items: flex-start;
       @include padding(6);
-      padding-bottom: px2rem(20); // 添加底部padding
+      padding-bottom: px2rem(20);
       width: 100vw;
       box-sizing: border-box;
       background-color: $list-bg;
       flex-shrink: 0;
+      
+      // 瀑布流列容器
+      .masonry-column {
+        display: flex;
+        flex-direction: column;  // 列内从上到下排列
+        gap: px2rem(6);
+      }
       
       // 空状态容器
       .empty-container {
@@ -494,7 +500,8 @@ $card-bg: #fff;
         display: flex;
         flex-direction: column;
         background: $card-bg;
-        min-height: fit-content;
+        width: 100%;  // 占满列宽
+        height: auto;  // 容器高度自适应内容
         @include border-radius(5);
         @include padding(8);
         box-sizing: border-box;
@@ -512,6 +519,7 @@ $card-bg: #fff;
           align-items: center;
           margin-bottom: px2rem(8);
           width: 100%;
+          position: relative; // 为骨架动画定位
           overflow: hidden;
           @include border-radius(4);
           background-color: #f8f9fa;
@@ -538,10 +546,63 @@ $card-bg: #fff;
           img {
             width: 100%;
             height: auto;
-            aspect-ratio: 1.3;
-            object-fit: cover;
+            display: block;
             @include border-radius(4);
             transition: transform 0.2s ease;
+            
+            // 图片加载时的骨架动画背景
+            background: linear-gradient(
+              90deg,
+              #f0f0f0 25%,
+              #e0e0e0 50%,
+              #f0f0f0 75%
+            );
+            background-size: 200% 100%;
+            
+            // 只在加载中显示动画
+            &:not([data-loaded="true"]) {
+              animation: skeleton-loading 1.5s ease-in-out infinite;
+            }
+          }
+
+          // 文字占位符样式 - 占据图片+标题区域
+          .commodity-img-placeholder {
+            width: 100%;
+            min-height: 120px;  // 减小最小高度
+            max-height: 220px;  // 减小最大高度
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #e8f0f7 0%, #f5f7fa 100%);
+            @include border-radius(4);
+            padding: px2rem(16);
+
+            .placeholder-text {
+              font-weight: 500;
+              color: #5a6c7d;
+              text-align: center;
+              line-height: 1.3;
+              display: -webkit-box;
+              -webkit-line-clamp: 3;  // 最多显示3行
+              -webkit-box-orient: vertical;
+              overflow: hidden;
+              word-break: break-word;
+              
+              // 根据文字长度动态调整字号
+              @include font-size(18);  // 默认18px
+              
+              &[data-length="medium"] {
+                @include font-size(16);
+              }
+              
+              &[data-length="long"] {
+                @include font-size(14);
+              }
+              
+              &[data-length="extra-long"] {
+                @include font-size(13);
+              }
+            }
           }
         }
 
@@ -567,7 +628,7 @@ $card-bg: #fff;
           align-items: center;
           gap: px2rem(6);
           margin-top: auto;
-          flex-wrap: wrap;
+          flex-wrap: nowrap;
 
           .commodity-price {
             @include font-size(15);
@@ -581,19 +642,60 @@ $card-bg: #fff;
             }
           }
 
-          .commodity-tag {
-            border: 1px solid #dbeaf5;
-            @include border-radius(4);
+          .commodity-tags {
+            display: flex;
+            gap: px2rem(4);
+            align-items: center;
+            flex-shrink: 1;
+            min-width: 0;
+            overflow: hidden;
+          }
+
+          .commodity-type {
+            @include border-radius(3);
             @include padding(2, 6);
             @include font-size(11);
-            color: #0674c1;
-            background-color: #f0f8ff;
+            font-weight: 500;
+            white-space: nowrap;
+            flex-shrink: 0;
+            color: white;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+
+            &.type-sell {
+              background: linear-gradient(135deg, #ff6b6b 0%, #ff8787 100%);
+            }
+
+            &.type-receive {
+              background: linear-gradient(135deg, #4ecdc4 0%, #56e4da 100%);
+            }
+          }
+
+          .commodity-campus {
+            @include border-radius(3);
+            @include padding(2, 6);
+            @include font-size(11);
+            font-weight: 500;
+            background: linear-gradient(135deg, #a29bfe 0%, #b8b2ff 100%);
+            color: white;
+            white-space: nowrap;
+            flex-shrink: 0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+          }
+
+          .commodity-tag {
+            @include border-radius(3);
+            @include padding(2, 6);
+            @include font-size(11);
+            font-weight: 500;
+            background: linear-gradient(135deg, #ffa502 0%, #ffb732 100%);
+            color: white;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
             flex: 1;
-            min-width: 0; // 允许flex项收缩
+            min-width: 0;
             text-align: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
           }
         }
       }
@@ -654,6 +756,7 @@ $card-bg: #fff;
     }
   }
   
+  
   // 加载状态和无更多内容提示
   .loading-more,
   .no-more {
@@ -662,8 +765,10 @@ $card-bg: #fff;
     align-items: center;
     padding: px2rem(20) 0;
     color: #999;
-    font-size: px2rem(14);
-    width: 100%; // 占满整个宽度
+    @include font-size(14);
+    width: 100vw; // 占满整个视口宽度
+    background-color: $list-bg;
+    margin-top: px2rem(-6); // 与 content 的 padding-bottom 对齐
     
     span {
       position: relative;
@@ -687,6 +792,15 @@ $card-bg: #fff;
   @keyframes spin {
     to {
       transform: rotate(360deg);
+    }
+  }
+  
+  @keyframes skeleton-loading {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
     }
   }
 }

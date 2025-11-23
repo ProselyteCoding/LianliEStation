@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
 import './SwitchDirection.scss'
-import switchIcon from '../../assets/switch-direction.png'
+import switchIcon from '../../assets/switch-direction.webp'
 
 interface SwitchDirectionProps {
   onClose?: () => void;

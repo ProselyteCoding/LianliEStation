@@ -4,7 +4,7 @@ import "../../Icon.scss"
 import { useUserStore } from "../../store";
 import { useNavigate, useLocation } from "react-router-dom";
 import Icon from "../../components/Icon/Icon";
-import avatarDefault from "../../assets/logo.png";
+import avatarDefault from "../../assets/logo.webp";
 import bannerDefault from "../../assets/background-wide.jpg";
 import { useState, useEffect } from "react";
 

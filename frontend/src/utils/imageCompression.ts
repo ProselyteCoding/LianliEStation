@@ -25,10 +25,10 @@ export async function compressImage(
 ): Promise<File> {
   // 默认压缩选项
   const defaultOptions = {
-    maxSizeMB: 1, // 最大 1MB
+    maxSizeMB: 0.5, // 最大 500KB (降低体积)
     maxWidthOrHeight: 1920, // 最大宽度/高度 1920px
     useWebWorker: true,
-    fileType: 'image/jpeg',
+    fileType: 'image/jpeg', // 统一转为 JPEG
     initialQuality: 0.85, // 初始质量 85%
   };
 
@@ -38,7 +38,17 @@ export async function compressImage(
     console.log(`🔄 开始压缩图片: ${file.name}`);
     console.log(`📊 原始大小: ${(file.size / 1024 / 1024).toFixed(2)} MB`);
 
-    const compressedFile = await imageCompression(file, finalOptions);
+    let compressedFile = await imageCompression(file, finalOptions);
+
+    // 如果压缩后仍超过限制,降低质量再压缩一次
+    if (compressedFile.size > 0.5 * 1024 * 1024) {
+      console.log(`⚠️ 压缩后仍超过 500KB,进行二次压缩...`);
+      compressedFile = await imageCompression(file, {
+        ...finalOptions,
+        initialQuality: 0.75, // 降低质量到 75%
+        maxSizeMB: 0.5
+      });
+    }
 
     console.log(`✅ 压缩完成: ${compressedFile.name}`);
     console.log(`📊 压缩后大小: ${(compressedFile.size / 1024 / 1024).toFixed(2)} MB`);

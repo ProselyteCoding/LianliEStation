@@ -7,8 +7,8 @@ import api from "../../../api";
 import { px2rem } from "../../../utils/rem";
 import "./MarketPublish.scss";
 import Navbar from "../../../components/Navbar/Navbar";
-import logo from "../../../assets/logo.png";
-import accept from "../../../assets/accept.png";
+import logo from "../../../assets/logo.webp";
+import accept from "../../../assets/accept.webp";
 import refresh from "../../../assets/refresh.svg";
 import { useDebounce,useDebouncedCallback } from '../../../hooks/useDebounce'
 

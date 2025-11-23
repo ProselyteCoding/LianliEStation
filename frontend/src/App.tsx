@@ -53,11 +53,17 @@ const App: React.FC = () => {
   const [userDismissedOverlay, setUserDismissedOverlay] = useState(false);
   const [showEntry, setShowEntry] = useState(true);
   const [entryFadingOut, setEntryFadingOut] = useState(false);
+  const [entryImagesLoaded, setEntryImagesLoaded] = useState(false);
 
   // Entry 加载动画
   useEffect(() => {
-    const ENTRY_DISPLAY_TIME = 1500; // Entry 显示 1.5 秒
+    const ENTRY_DISPLAY_TIME = 2000; // Entry 显示 2 秒（增加时间）
     const ENTRY_FADE_OUT_TIME = 500; // Entry 淡出动画 0.5 秒
+
+    // 只有在图片加载完成后才开始计时
+    if (!entryImagesLoaded) {
+      return;
+    }
 
     const entryTimer = setTimeout(() => {
       setEntryFadingOut(true);
@@ -68,7 +74,7 @@ const App: React.FC = () => {
     }, ENTRY_DISPLAY_TIME);
 
     return () => clearTimeout(entryTimer);
-  }, []);
+  }, [entryImagesLoaded]);
 
   // 仅在移动端开启竖屏监控和提示
   useEffect(() => {
@@ -284,7 +290,7 @@ const App: React.FC = () => {
       {/* Entry 欢迎页 - 首次加载 */}
       {showEntry && (
         <div className={`entry-overlay ${entryFadingOut ? 'fade-out' : ''}`}>
-          <Lazy.Entry />
+          <Lazy.Entry onImagesLoaded={() => setEntryImagesLoaded(true)} />
         </div>
       )}
       <React.Suspense fallback={<div style={{ display: 'none' }}>加载中...</div>}>

@@ -1,11 +1,14 @@
 // src/components/ChatInput.tsx
-import React, { useRef, useState,useEffect } from "react";
-import { Input, Button, Space, message, Modal } from "antd";
+import React, { useRef, useState, useEffect, Suspense, lazy } from "react";
+import { Input, Button, Space, message, Modal, Spin } from "antd";
 import { SmileOutlined, SendOutlined } from "@ant-design/icons";
-import EmojiPicker, { EmojiClickData } from "emoji-picker-react"; 
+import type { EmojiClickData } from "emoji-picker-react";
 import "./ChatInput.scss";
 import { useMainStore } from "../../store";
 import { aiAPI } from "../../api";
+
+// 懒加载 emoji-picker-react (150KB)
+const EmojiPicker = lazy(() => import("emoji-picker-react"));
 
 type Props = {
   id: number;
@@ -122,10 +125,12 @@ const ChatInput: React.FC<Props> = ({id, parent_id, replyToName, onCommentSucces
           />
           {showEmoji && (
             <div className="chat-input__emoji-picker" ref={emojiRef}>
-              <EmojiPicker
-                onEmojiClick={handleEmojiClick}
-                autoFocusSearch={false} 
-              />
+              <Suspense fallback={<Spin size="small" tip="加载中..." />}>
+                <EmojiPicker
+                  onEmojiClick={handleEmojiClick}
+                  autoFocusSearch={false} 
+                />
+              </Suspense>
             </div>
           )}
 
