@@ -1,0 +1,175 @@
+@font-face {
+  font-family: "iconfont";
+  src: url("./assets/fonts/icomoon.woff") format("truetype");
+}
+
+.iconfont {
+  font-family: "iconfont" !important;
+  font-size: 24px;
+  font-style: normal;
+}
+
+.icon-messages:before {
+    content: "\e900";
+}
+
+.icon-settings:before {
+    content: "\e901";
+}
+
+.icon-history:before {
+    content: "\e902";
+}
+
+.icon-favorites:before {
+    content: "\e903";
+}
+
+.icon-right:before{
+    content: "\e904";
+}
+
+.icon-about:before {
+    content: "\e905";
+}
+
+.icon-logout:before {
+    content: "\e906";
+}
+
+.icon-search:before {
+    content: "\e907";
+    color: aliceblue;
+    font-size: 30px;
+}
+
+.icon-add:before {
+    content: "\e908";
+    color: aliceblue;
+    font-size: 30px;
+}
+
+.icon-favorited:before{
+    content: "\e909";
+    color: rgb(245, 242, 46);
+}
+
+.icon-like:before{
+    content: "\e90a";
+    font-size: 32px;
+}
+
+.icon-liked:before{
+    content: "\e90b";
+    font-size: 32px;
+    color: rgb(3, 155, 225);
+}
+
+.icon-dislike:before{
+    content: "\e90c";
+    font-size: 32px;
+}
+
+.icon-disliked:before{
+    content: "\e90d";
+    font-size: 32px;
+    color: rgb(3, 155, 225);
+}
+
+.icon-favorite:before{
+    content: "\e90e";
+}
+
+.icon-copy:before{
+    content: "\e90f";
+}
+
+.icon-share:before{
+    content: "\e910";
+}
+
+.icon-left:before{
+    content: "\e911";
+}
+
+.icon-liked2:before{
+    content: "\e912";
+    color: rgb(255, 25, 0);
+}
+
+.icon-like2:before{
+    content: "\e913";
+    font-weight: bold;
+}
+
+.icon-messages-read:before{
+    content: "\e914";
+}
+
+.icon-appeal:before{
+    content: "\e915";
+}
+
+.icon-reply::before{
+    content: "\e916";
+}
+
+.icon-goods:before{
+    content: "\e917";
+}
+
+.icon-post:before{
+    content: "\e918";
+}
+
+.icon-more:before{
+    content: "\e919";
+    font-size: 16px;
+    margin-right: 3px;
+}
+
+.icon-all:before{
+    content: "\e919";
+}
+
+.icon-manage:before{
+    content: "\e91a";
+    font-size: 18px;
+    margin-right:3px ;
+}
+
+.icon-forum-active:before{
+    content:"\e91d";
+    color: white;
+    font-size: 32px;
+}
+
+.icon-market-active:before{
+    content:"\e91b";
+    color:white;
+    font-size: 32px;
+}
+
+.icon-user-active:before{
+    content:"\e91c";
+    color:white;
+    font-size: 32px;
+}
+
+.icon-user:before{
+    content:"\e91e";
+    color:white;
+    font-size: 32px;
+}
+
+.icon-market:before{
+    content:"\e91f";
+    color:white;
+    font-size: 32px;
+}
+
+.icon-forum:before{
+    content:"\e920";
+    color:white;
+    font-size: 32px;
+}

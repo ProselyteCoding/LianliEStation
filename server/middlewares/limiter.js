@@ -61,4 +61,31 @@ export const verificationLimiter = rateLimit({
     message: { message: "您的请求验证码次数过多，请稍后再试" }, // 超过限制时的响应消息
     keyGenerator: getClientIP, // 使用自定义IP获取函数
 });
+
+// 发布内容限流，防止垃圾信息
+export const publishLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1小时
+  max: 20, // 每个 IP 最多允许 20 次发布请求
+  skipFailedRequests: true, // 仅对成功请求计数
+  message: { message: "发布内容过于频繁，请稍后再试" },
+  keyGenerator: getClientIP, // 使用自定义IP获取函数
+});
+
+// 申诉提交限流，防止恶意申诉
+export const appealLimiter = rateLimit({
+  windowMs: 24 * 60 * 60 * 1000, // 24小时
+  max: 5, // 每个 IP 最多允许 5 次申诉请求
+  skipFailedRequests: true, // 仅对成功请求计数
+  message: { message: "今日申诉次数已达上限，请明天再试" },
+  keyGenerator: getClientIP,
+});
+
+// 评论发布限流，防止垃圾评论
+export const commentLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000, // 5分钟
+  max: 10, // 每个 IP 最多允许 10 次评论
+  skipFailedRequests: true, // 仅对成功请求计数
+  message: { message: "评论过于频繁，请稍后再试" },
+  keyGenerator: getClientIP, // 使用自定义IP获取函数
+});
   

@@ -1,14 +1,17 @@
 import Navbar from "../../../components/Navbar/Navbar"
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import { useRecordStore } from "../../../store"
 import { Card, Dropdown, Empty } from "antd";
-import { AppstoreOutlined, ShoppingOutlined, FileTextOutlined, SettingOutlined } from "@ant-design/icons";
 import type { MenuProps } from "antd";
+import { ResponsiveImage } from "../../../components/ResponsiveImage";
 import NoticeModal from "../../../components/NoticeModal/NoticeModal"
 import { useUserStore } from "../../../store"
 import { px2rem } from "../../../utils/rem"
 import "./Favorites.scss"
-import takePlace from "../../../assets/takePlace.png"
+import { useDebounce,useDebouncedCallback } from '../../../hooks/useDebounce'
+import {useScrollerStore} from "../../../store";
+import { useLocation } from "react-router-dom";
+import Icon from "../../../components/Icon/Icon";
 
 type checkBox = { [number: number]: boolean }
 
@@ -20,11 +23,20 @@ const Favorites: React.FC = () => {
   const [isPosts, setIsPosts] = useState(false)
   const [currentType, setCurrentType] = useState("商品");
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const bodyRef = useRef<HTMLDivElement|null>(null)
+  const [scroller,setScroller] = useState<number>(0)
+  const scrollerStore = useScrollerStore()
+  const location = useLocation()
 
   useEffect(() => {
+    scrollerStore.updatePath(location.pathname)
+
     if (isAuthenticated) {
       getFavorites()
       console.log(favoritesGoods, favoritePosts)
+
+      const last_scroller = scrollerStore.restoreSinglePage()
+      bodyRef.current?.scrollTo(0,last_scroller)
     }
   }, [isAuthenticated, refreshTrigger])
 
@@ -42,7 +54,7 @@ const Favorites: React.FC = () => {
           商品
         </div>
       ),
-      icon: <ShoppingOutlined />,
+      icon: <Icon name="goods" size={18} />,
     },
     {
       key: "2",
@@ -57,7 +69,7 @@ const Favorites: React.FC = () => {
           帖子
         </div>
       ),
-      icon: <FileTextOutlined />,
+      icon: <Icon name="post" size={18} />,
     },
   ];
 
@@ -94,6 +106,12 @@ const Favorites: React.FC = () => {
     }
   }
 
+  const handleScroll = () =>{
+    setScroller(bodyRef.current?.scrollTop || 0)
+    scrollerStore.setScroller(bodyRef.current?.scrollTop || 0)
+  }
+
+  const handleOnDeleteDebounce = useDebouncedCallback(handleOnDelete)
 
   return (
     <div className="favorites-container">
@@ -107,22 +125,20 @@ const Favorites: React.FC = () => {
           <div className="select-item">
             <Dropdown menu={{ items }}>
               <div onClick={(e) => e.preventDefault()} style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <AppstoreOutlined
-                  style={{ width: px2rem(20), height: px2rem(20), marginRight: px2rem(5) }}
-                />
+                <Icon name={isPosts ? "post" : "goods"} size={20} />
                 {currentType}
               </div>
             </Dropdown>
           </div>
           <div className="select-item" onClick={() => handleOnClick()}>
             <div className="select-item-btn">
-              <SettingOutlined style={{ marginRight: px2rem(5) }} />
+              <Icon name="manage" size={20} />
               管理
             </div>
           </div>
         </div>
 
-        <div className="content">
+        <div className="content" ref={bodyRef} onScroll={handleScroll}>
           {
             !isPosts ? (
               favoritesGoods.length === 0 ? (
@@ -143,14 +159,26 @@ const Favorites: React.FC = () => {
                     <Card className="item-description" title={goods.title} hoverable>
                       <div className="item-content">
                         <div className='item-img'>
-                          <img
-                            src={
-                              goods.images && goods.images[0]
-                                ? `${process.env.REACT_APP_API_URL || "http://localhost:5000"}${goods.images[0]}`
-                                : takePlace
-                            }
-                            alt=""
-                          />
+                          {goods.images && goods.images[0] ? (
+                            <ResponsiveImage
+                              src={`${process.env.REACT_APP_API_URL || "http://localhost:5000"}${goods.images[0]}`}
+                              alt={goods.title}
+                              size="medium"
+                            />
+                          ) : (
+                            <div className="commodity-img-placeholder">
+                              <span 
+                                className="placeholder-text"
+                                data-length={
+                                  goods.title.length <= 6 ? 'short' :
+                                  goods.title.length <= 12 ? 'medium' :
+                                  goods.title.length <= 20 ? 'long' : 'extra-long'
+                                }
+                              >
+                                {goods.title}
+                              </span>
+                            </div>
+                          )}
                         </div>
                         <div className="item-info">
                           <div className="item-detail">
@@ -189,14 +217,26 @@ const Favorites: React.FC = () => {
                     <Card className="item-description" title={post.title} hoverable>
                       <div className="item-content">
                         <div className='item-img'>
-                          <img
-                            src={
-                              post.images && post.images[0]
-                                ? `${process.env.REACT_APP_API_URL || "http://localhost:5000"}${post.images[0]}`
-                                : takePlace
-                            }
-                            alt=""
-                          />
+                          {post.images && post.images[0] ? (
+                            <ResponsiveImage
+                              src={`${process.env.REACT_APP_API_URL || "http://localhost:5000"}${post.images[0]}`}
+                              alt={post.title}
+                              size="medium"
+                            />
+                          ) : (
+                            <div className="commodity-img-placeholder">
+                              <span 
+                                className="placeholder-text"
+                                data-length={
+                                  post.title.length <= 6 ? 'short' :
+                                  post.title.length <= 12 ? 'medium' :
+                                  post.title.length <= 20 ? 'long' : 'extra-long'
+                                }
+                              >
+                                {post.title}
+                              </span>
+                            </div>
+                          )}
                         </div>
                         <div className="item-info">
                           <div className="item-detail">
@@ -223,7 +263,7 @@ const Favorites: React.FC = () => {
         isVisible ? (
           <div className="footer">
             <div className="delete-button">
-              <button onClick={() => handleOnDelete()}>删除</button>
+              <button onClick={() => handleOnDeleteDebounce()}>删除</button>
             </div>
           </div>) : null
       }

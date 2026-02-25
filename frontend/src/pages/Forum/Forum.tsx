@@ -4,15 +4,41 @@ import {
   Empty,
 } from "antd";
 import "./Forum.scss";
+import "../../Icon.scss";
 import { useMainStore } from "../../store";
 import { useNavigate } from "react-router-dom";
 import Tabbar from "../../components/Tabbar/Tabbar";
-import Like from '../../assets/like.svg';
-import logo from "../../assets/logo.png";
-import search from "../../assets/search-white.svg";
-import add from "../../assets/add-white.svg"
-import ForumBanner from "../../assets/banner2.png";
-import ADInviting from "../../assets/ad3.3-logo.png";
+import Icon from "../../components/Icon/Icon";
+import logo from "../../assets/logo.webp";
+import ForumBanner from "../../assets/banner2.webp";
+import { useDebounce,useDebouncedCallback } from '../../hooks/useDebounce'
+import ADInviting from "../../assets/ad3.3-logo.webp";
+import { useScrollerStore } from "../../store";
+import { useLocation } from "react-router-dom";
+
+// 骨架屏帖子生成函数
+const generateSkeletonPosts = (count: number) => {
+  return Array.from({ length: count }, (_, index) => (
+    <div key={index} className="skeleton-post-card">
+      <div className="skeleton-post-header">
+        <div className="skeleton-avatar" />
+        <div className="skeleton-author-name" />
+      </div>
+      <div className="skeleton-title" />
+      <div className="skeleton-content-line" />
+      <div className="skeleton-content-line short" />
+      <div className="skeleton-post-images">
+        <div className="skeleton-image-item" />
+        <div className="skeleton-image-item" />
+        <div className="skeleton-image-item" />
+      </div>
+      <div className="skeleton-likes">
+        <div className="skeleton-like-icon" />
+        <div className="skeleton-like-count" />
+      </div>
+    </div>
+  ));
+};
 
 const Forum = () => {
   const navigate = useNavigate();
@@ -23,25 +49,85 @@ const Forum = () => {
     postFilters: filters,
     setPostFilters: setFilters,
     clearPosts,
+    isForumLoading,
     isForumLoadingMore,
     hasMorePosts,
+    getForumPage,
+    saveForumCache,
   } = useMainStore();
+  const location = useLocation()
+  const scrollerStore = useScrollerStore()
   const [searchInputs, setSearchInputs] = useState("");
   const [showMore, setShowMore] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
   const bodyRef = useRef<HTMLDivElement>(null);
+  const carouselWrapperRef = useRef<HTMLDivElement | null>(null); // banner 容器引用
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const initialScrollSet = useRef(false); // 标记是否已设置初始滚动位置
+  const [scroller,setScroller] = useState<number>(0)
+  
+  // TODO: Banner 初始高度计算功能暂时禁用，需要重新设计实现方案
+  // 问题：无法在组件初始化时准确获取 banner 高度，导致轮播图出现跳动
+  // const savedScroll = scrollerStore.scrollStates[location.pathname] || 0;
+  // const savedBannerHeight = scrollerStore.bannerHeights[location.pathname] || 0;
+  // const initialBannerHeight = (savedScroll > 0 && savedBannerHeight > 0) 
+  //   ? Math.max(0, savedBannerHeight - savedScroll) 
+  //   : null;
+  const initialBannerHeight = null;
+
+  // bodyRef 的 callback，在元素挂载时立即设置滚动位置
+  const setBodyRef = (element: HTMLDivElement | null) => {
+    bodyRef.current = element;
+    
+    // 只在首次挂载时设置初始滚动位置
+    if (element && !initialScrollSet.current) {
+      const savedScroll = scrollerStore.scrollStates[location.pathname] || 0;
+      if (savedScroll > 0) {
+        // 立即设置滚动位置
+        element.scrollTop = savedScroll;
+        initialScrollSet.current = true;
+        console.log('设置初始滚动位置', savedScroll);
+      }
+    }
+  };
 
   useEffect(() => {
-    fetchPosts();
+    const loadAndRestore = async () => {
+      await scrollerStore.updatePath(location.pathname);
+      
+      // 总是重新加载数据，确保显示最新内容
+      console.log('加载论坛数据');
+      
+      // 清空旧数据
+      clearPosts();
+      
+      // 加载第一页
+      await fetchPosts();
+      
+      // 恢复滚动位置（但不恢复多页数据，用户滚动时自动加载）
+      const last_scroller = scrollerStore.scrollStates[location.pathname] || 0;
+      setScroller(last_scroller);
+      bodyRef.current?.scrollTo(0, last_scroller);
+      
+      console.log('恢复滚动位置', last_scroller);
+    };
     
+    loadAndRestore();
+
     // 清理函数：组件卸载时清除定时器
     return () => {
       if (scrollTimeoutRef.current) {
         clearTimeout(scrollTimeoutRef.current);
       }
+      scrollerStore.setPage(getForumPage());
+      
+      // banner 高度已在 handleScroll 中实时保存，此处不需要再次保存
+      
+      // 离开页面时保存缓存
+      saveForumCache();
     };
-  }, [fetchPosts]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // 只在组件挂载时执行一次
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchInputs(e.target.value);
@@ -68,6 +154,25 @@ const Forum = () => {
   };
 
   const handleScroll = () => {
+    if(bodyRef.current){
+      const currentScroll = bodyRef.current.scrollTop;
+      setScroller(currentScroll);
+      scrollerStore.setScroller(currentScroll); // 使用当前值而不是 state
+      
+      // TODO: Banner 高度保存功能暂时禁用
+      // if (carouselWrapperRef.current) {
+      //   const currentBannerHeight = scrollerStore.bannerHeights[location.pathname];
+      //   if (!currentBannerHeight || currentBannerHeight === 0) {
+      //     const bannerImage = carouselWrapperRef.current.querySelector('.carousel-item') as HTMLImageElement;
+      //     const bannerHeight = bannerImage?.offsetHeight || 0;
+      //     if (bannerHeight > 0) {
+      //       scrollerStore.setBannerHeight(bannerHeight);
+      //       console.log('[Forum] 首次保存 banner 高度:', bannerHeight);
+      //     }
+      //   }
+      // }
+    }
+
     // 如果正在加载或没有更多内容，直接返回
     if (isForumLoadingMore || !hasMorePosts) {
       return;
@@ -81,6 +186,7 @@ const Forum = () => {
     // 使用防抖，避免频繁触发
     scrollTimeoutRef.current = setTimeout(() => {
       // forum-body滚动到底部时加载更多
+
       if (bodyRef.current) {
         const { scrollHeight, scrollTop, clientHeight } = bodyRef.current;
 
@@ -92,6 +198,8 @@ const Forum = () => {
     }, 150); // 150ms 防抖延迟
   };
 
+  const handleSearchDebounce = useDebouncedCallback(handleSearch)
+  const handleOnConfirmDebounce = useDebouncedCallback(handleOnConfirm)
   return (
     <div className="forum-container">
       <div className="forum-navbar">
@@ -104,17 +212,31 @@ const Forum = () => {
           value={searchInputs}
           onChange={handleChange}
         />
-        <div className="icon" onClick={handleSearch}>
-          <img src={search} alt="search" />
+        <div className="icon" onClick={handleSearchDebounce}>
+          <Icon name="search" size={32} />
         </div>
       </div>
 
-      <div className="forum-body" ref={bodyRef} onScroll={handleScroll}>
+      <div className="forum-body" ref={setBodyRef} onScroll={handleScroll}>
         {/* 蒙版层 - 移到 body 内部 */}
         {showMore && <div className="overlay" onClick={handleCloseMore}></div>}
         
         {/* 轮播图 - 会被滚动隐藏 */}
-        <div className="carousel-wrapper">
+        <div 
+          className="carousel-wrapper" 
+          ref={carouselWrapperRef}
+          style={
+            initialBannerHeight !== null 
+              ? { 
+                  height: `${initialBannerHeight}px`, 
+                  minHeight: `${initialBannerHeight}px`,
+                  maxHeight: `${initialBannerHeight}px`,
+                  overflow: 'hidden',
+                  transition: 'none' // 防止过渡动画
+                } 
+              : undefined
+          }
+        >
           <Carousel autoplay className="carousel">
             <img
               className="carousel-item"
@@ -391,7 +513,7 @@ const Forum = () => {
             </div>
 
             <div className="confirm">
-              <button onClick={handleOnConfirm}>确认</button>
+              <button onClick={handleOnConfirmDebounce}>确认</button>
             </div>
           </div>
         )}
@@ -399,12 +521,20 @@ const Forum = () => {
         {/* 帖子列表 */}
         <div className="content">
           {posts.length === 0 ? (
-            <div className="empty-container">
-              <Empty 
-                description="没有这一种类的帖子"
-                image={Empty.PRESENTED_IMAGE_SIMPLE}
-              />
-            </div>
+            isForumLoading ? (
+              // 正在加载中，显示骨架屏
+              <div className="skeleton-posts">
+                {generateSkeletonPosts(6)}
+              </div>
+            ) : (
+              // 加载完成但没有数据，显示空状态
+              <div className="empty-container">
+                <Empty 
+                  description="没有这一种类的帖子"
+                  image={Empty.PRESENTED_IMAGE_SIMPLE}
+                />
+              </div>
+            )
           ) : (
             <>
               {posts.map((post, index) => {
@@ -435,11 +565,12 @@ const Forum = () => {
                 };
 
                 return (
-                  <div 
-                    className={`post-card ${post.images.length > 0 ? 'has-images' : 'no-images'}`}
-                    key={post.id} 
-                onClick={() => navigate(`/forum-detail?id=${post.id}`)}
-              >
+                <div 
+                  className={`post-card ${post.images.length > 0 ? 'has-images' : 'no-images'}`}
+                  key={`post-${index}-${post.id}`} 
+                  onClick={() => navigate(`/forum-detail?id=${post.id}`)}
+                  // onClick={()=>console.log(posts)}
+                >
                 <div className="post-header">
                   <div className="author-info">
                     <img 
@@ -481,11 +612,11 @@ const Forum = () => {
 
                 <div className="post-footer">
                   <div className="stat-item">
-                    <img src={Like} alt="likes" />
+                    <Icon name="like2" size={18} />
                     <span>{post.likes}</span>
                   </div>
                   <div className="stat-item">
-                    <span>💬</span>
+                    <Icon name="post" size={18} />
                     <span>
                       {post.comments?.reduce((total, comment) => {
                         return total + 1 + (comment.replies?.length || 0);
@@ -517,7 +648,7 @@ const Forum = () => {
 
       <div className="forum-tabbar">
         <div className="custom-float-button" onClick={() => navigate(`/publish/forum-publish`)}>
-          <img className="plus-icon" src={add} alt="发布帖子"></img>
+          <Icon name="add" size={24} className="plus-icon" />
         </div>
         <Tabbar initialIndex={1} />
       </div>

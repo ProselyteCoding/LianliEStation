@@ -4,6 +4,7 @@ import api from "../api/index";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { AxiosError } from "axios";
+import { compressPostImages } from "../utils/imageCompression";
 
 interface Goods {
   id: number;
@@ -87,6 +88,14 @@ interface MainState {
   goods: Goods[];
   posts: Post[];
   
+  // 缓存相关
+  cachedGoods: Goods[]; // 缓存的商品数据
+  cachedPosts: Post[]; // 缓存的帖子数据
+  cachedGoodsFilters: string | null; // 缓存的商品筛选条件（序列化后的字符串）
+  cachedPostFilters: string | null; // 缓存的帖子筛选条件（序列化后的字符串）
+  hasCachedMarket: boolean; // 是否有商城缓存
+  hasCachedForum: boolean; // 是否有论坛缓存
+  
   // 筛选器
   goodsFilters: GoodsFilters;
   postFilters: PostFilters;
@@ -104,10 +113,19 @@ interface MainState {
   // 通用清理方法
   clear: () => void;
   
+  // 缓存相关方法
+  saveMarketCache: () => void; // 保存商城缓存
+  saveForumCache: () => void; // 保存论坛缓存
+  restoreMarketCache: () => boolean; // 恢复商城缓存，返回是否成功
+  restoreForumCache: () => boolean; // 恢复论坛缓存，返回是否成功
+  clearMarketCache: () => void; // 清空商城缓存
+  clearForumCache: () => void; // 清空论坛缓存
+  
   // 商品相关方法
   fetchGoods: () => Promise<void>;
-  updateGoods: () => Promise<void>;
+  updateGoods: (page?:number) => Promise<void>;
   clearGoods: () => void;
+  getMarketPage:() => number;
   setGoodsFilters: (newFilters: Partial<GoodsFilters>) => void;
   clearGoodsFilters: () => void;
   publishMarketGoods: (
@@ -139,8 +157,9 @@ interface MainState {
   
   // 帖子相关方法
   fetchPosts: () => Promise<void>;
-  updatePosts: () => Promise<void>;
+  updatePosts: (page?:number) => Promise<void>;
   clearPosts: () => void;
+  getForumPage:() => number
   setPostFilters: (newFilters: Partial<PostFilters>) => void;
   clearPostFilters: () => void;
   publishForumPost: (
@@ -187,6 +206,14 @@ const useMainStore = create<MainState>()(
       // 数据列表
       goods: [],
       posts: [],
+      
+      // 缓存相关
+      cachedGoods: [],
+      cachedPosts: [],
+      cachedGoodsFilters: null,
+      cachedPostFilters: null,
+      hasCachedMarket: false,
+      hasCachedForum: false,
       
       // 筛选器
       goodsFilters: {
@@ -261,6 +288,100 @@ const useMainStore = create<MainState>()(
           },
         })),
 
+      // ==================== 缓存相关方法 ====================
+      
+      // 保存商城缓存
+      saveMarketCache: () => {
+        const currentFilters = JSON.stringify(get().goodsFilters);
+        set({
+          cachedGoods: [...get().goods],
+          cachedGoodsFilters: currentFilters,
+          hasCachedMarket: true,
+        });
+        console.log('商城缓存已保存', { 
+          goodsCount: get().goods.length, 
+          page: get().marketPage,
+          filters: currentFilters 
+        });
+      },
+      
+      // 保存论坛缓存
+      saveForumCache: () => {
+        const currentFilters = JSON.stringify(get().postFilters);
+        set({
+          cachedPosts: [...get().posts],
+          cachedPostFilters: currentFilters,
+          hasCachedForum: true,
+        });
+        console.log('论坛缓存已保存', { 
+          postsCount: get().posts.length, 
+          page: get().forumPage,
+          filters: currentFilters 
+        });
+      },
+      
+      // 恢复商城缓存
+      restoreMarketCache: () => {
+        const currentFilters = JSON.stringify(get().goodsFilters);
+        const { cachedGoods, cachedGoodsFilters, hasCachedMarket } = get();
+        
+        // 检查是否有缓存且筛选条件相同
+        if (hasCachedMarket && cachedGoodsFilters === currentFilters && cachedGoods.length > 0) {
+          set({
+            goods: [...cachedGoods],
+          });
+          console.log('商城缓存恢复成功', { 
+            goodsCount: cachedGoods.length,
+            filters: currentFilters 
+          });
+          return true;
+        }
+        
+        console.log('商城缓存恢复失败或筛选条件已改变');
+        return false;
+      },
+      
+      // 恢复论坛缓存
+      restoreForumCache: () => {
+        const currentFilters = JSON.stringify(get().postFilters);
+        const { cachedPosts, cachedPostFilters, hasCachedForum } = get();
+        
+        // 检查是否有缓存且筛选条件相同
+        if (hasCachedForum && cachedPostFilters === currentFilters && cachedPosts.length > 0) {
+          set({
+            posts: [...cachedPosts],
+          });
+          console.log('论坛缓存恢复成功', { 
+            postsCount: cachedPosts.length,
+            filters: currentFilters 
+          });
+          return true;
+        }
+        
+        console.log('论坛缓存恢复失败或筛选条件已改变');
+        return false;
+      },
+      
+      // 清空商城缓存
+      clearMarketCache: () => {
+        set({
+          cachedGoods: [],
+          cachedGoodsFilters: null,
+          hasCachedMarket: false,
+        });
+        console.log('商城缓存已清空');
+      },
+      
+      // 清空论坛缓存
+      clearForumCache: () => {
+        set({
+          cachedPosts: [],
+          cachedPostFilters: null,
+          hasCachedForum: false,
+        });
+        console.log('论坛缓存已清空');
+      },
+
       // ==================== 帖子相关方法 ====================
 
       // 获取帖子列表（首次加载）
@@ -300,9 +421,11 @@ const useMainStore = create<MainState>()(
           set({ isForumLoading: false }); // 加载完成
         }
       },
-
+      getMarketPage:()=>{
+        return get().marketPage
+      },
       // 更新帖子列表（滚动加载更多）
-      updatePosts: async () => {
+      updatePosts: async (uploadPage?:number) => {
         // 如果正在加载更多或没有更多内容，直接返回
         if (get().isForumLoadingMore || !get().hasMorePosts) {
           if (!get().hasMorePosts) {
@@ -320,7 +443,7 @@ const useMainStore = create<MainState>()(
             params: {
               with_comments: true,
               limit: 16,
-              page: get().forumPage,
+              page: uploadPage?uploadPage:get().forumPage,
               keyword: get().postFilters.searchTerm,
               tag: get().postFilters.tag,
               campus_id: get().postFilters.campus_id,
@@ -330,6 +453,9 @@ const useMainStore = create<MainState>()(
             const data = response.data.posts;
             
             console.log(`成功加载第${get().forumPage}页，获取${data.length}个帖子`);
+            if(uploadPage){
+              set({forumPage:uploadPage})
+            }
             
             set((state) => ({
               posts: [...state.posts, ...data], // 追加新数据
@@ -352,12 +478,15 @@ const useMainStore = create<MainState>()(
       },
 
       // 清空帖子列表
-      clearPosts: () =>
+      clearPosts: () => {
+        // 清空帖子数据和缓存
+        get().clearForumCache();
         set(() => ({
           posts: [],
           forumPage: 1,
           hasMorePosts: true, // 重置hasMore状态
-        })),
+        }));
+      },
 
       // 设置帖子筛选器
       setPostFilters: async (newFilters) => {
@@ -376,6 +505,10 @@ const useMainStore = create<MainState>()(
           },
         })),
 
+        getForumPage:()=>{
+          return get().forumPage
+        },
+
       // 发布帖子
       publishForumPost: async (
         title: string,
@@ -391,9 +524,11 @@ const useMainStore = create<MainState>()(
           formData.append('campus_id', campus_id.toString());
           if(tag) formData.append('tag', tag);
           
-          // 如果有图片，添加到formData
+          // ✅ 如果有图片，先压缩再添加到formData
           if (images && images.length > 0) {
-            images.forEach((image) => {
+            console.log('🔄 开始压缩帖子图片...');
+            const compressedImages = await compressPostImages(images);
+            compressedImages.forEach((image) => {
               formData.append('images', image);
             });
           }
@@ -444,9 +579,11 @@ const useMainStore = create<MainState>()(
             formData.append('tag', tag);
           }
           
-          // 图片上传（最多3张）
+          // ✅ 图片上传（最多3张）- 先压缩再上传
           if (images && images.length > 0) {
-            images.forEach((image) => {
+            console.log('🔄 开始压缩商品图片...');
+            const compressedImages = await compressPostImages(images);
+            compressedImages.forEach((image) => {
               formData.append('images', image);
             });
           }
@@ -500,9 +637,11 @@ const useMainStore = create<MainState>()(
             formData.append('tag', tag);
           }
           
-          // 图片上传（最多3张）
+          // ✅ 图片上传（最多3张）- 先压缩再上传
           if (images && images.length > 0) {
-            images.forEach((image) => {
+            console.log('🔄 开始压缩商品图片（修改）...');
+            const compressedImages = await compressPostImages(images);
+            compressedImages.forEach((image) => {
               formData.append('images', image);
             });
           }
@@ -546,9 +685,11 @@ const useMainStore = create<MainState>()(
             formData.append('tag', tag);
           }
           
-          // 图片上传（最多9张）
+          // ✅ 图片上传（最多9张）- 先压缩再上传
           if (images && images.length > 0) {
-            images.forEach((image) => {
+            console.log('🔄 开始压缩帖子图片（修改）...');
+            const compressedImages = await compressPostImages(images);
+            compressedImages.forEach((image) => {
               formData.append('images', image);
             });
           }
@@ -579,30 +720,46 @@ const useMainStore = create<MainState>()(
         try {
           const response = await api.post(`api/forum/posts/interact/${id}`, {
             post_id: id,
-            action: action,
-            content: content ? content : null,
-            parent_id: parent_id ? parent_id : null,
-            value: value ? value : null,
+            action,
+            content: content || null,
+            parent_id: parent_id || null,
+            value: value || null,
           });
 
-          // if (response?.status === 200) {
-          //   if(action === "like"){
-          //     set((state) => ({
-          //       forums: state.forums.map((forum) =>
-          //         forum.id === id ? { ...forum, like: !forum.like } : forum
-          //       ),
-          //     }));
-          //   }
-          // }
-          return response.status;
-        }
-        catch(error){
-          console.log(error)
+          if (response?.status === 201) {
+            let newComment = response.data?.comment;
+            if (!newComment) return;
+
+            set((state) => ({
+              posts: state.posts.map((post) =>
+                post.id === id 
+                  ? parent_id
+                    ? {
+                        ...post,
+                        comments: post.comments.map((comment) =>
+                          comment.id === parent_id
+                            ? {
+                                ...comment,
+                                replies: [...(comment.replies || []), newComment],
+                              }
+                            : comment
+                        ),
+                      }
+                    : {
+                        ...post,
+                        comments: [...(post.comments || []), newComment],
+                      }
+                  : post
+              ),
+            }));
+          }
+        } catch (error) {
+          console.error(error);
           const err = error as AxiosError;
-          if (err.response)
-            return err.response.status;
+          if (err.response) return err.response.status;
         }
       },
+
 
       // ==================== 商品相关方法 ====================
 
@@ -652,12 +809,15 @@ const useMainStore = create<MainState>()(
       },
 
       // 清空商品列表
-      clearGoods: () =>
+      clearGoods: () => {
+        // 清空商品数据和缓存
+        get().clearMarketCache();
         set(() => ({
           goods: [],
           marketPage: 1,
           hasMoreGoods: true, // 重置hasMore状态
-        })),
+        }));
+      },
 
       // 设置商品筛选器
       setGoodsFilters: async (newFilters) => {
@@ -679,7 +839,7 @@ const useMainStore = create<MainState>()(
         })),
 
       // 更新商品列表（滚动加载更多）
-      updateGoods: async () => {
+      updateGoods: async (uploadPage?:number) => {
         // 如果正在加载更多或没有更多内容，直接返回
         if (get().isMarketLoadingMore || !get().hasMoreGoods) {
           if (!get().hasMoreGoods) {
@@ -695,7 +855,7 @@ const useMainStore = create<MainState>()(
         try {
           const response = await api.get("/api/goods", {
             params: {
-              page: get().marketPage,
+              page: uploadPage?uploadPage:get().marketPage,
               limit: 12,
               keyword: get().goodsFilters.searchTerm,
               goods_type: get().goodsFilters.goods_type,
@@ -711,6 +871,9 @@ const useMainStore = create<MainState>()(
             const data = response.data.goods;
             
             console.log(`成功加载第${get().marketPage}页，获取${data.length}个商品`);
+            if(uploadPage){
+              set({marketPage:uploadPage})
+            }
             
             set((state) => ({
               goods: [...state.goods, ...data], // 追加新数据

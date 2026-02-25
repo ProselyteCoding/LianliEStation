@@ -1,0 +1,81 @@
+.responsive-image-wrapper {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  
+  // 加载中显示骨架动画背景
+  &:not(.loaded) {
+    background: linear-gradient(
+      90deg,
+      #f0f0f0 25%,
+      #e0e0e0 50%,
+      #f0f0f0 75%
+    );
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s ease-in-out infinite;
+  }
+  
+  // 图片加载完成后移除背景
+  &.loaded {
+    background: transparent;
+    animation: none;
+  }
+  
+  img {
+    width: 100%;
+    height: auto;
+    display: block;
+    transition: opacity 0.3s ease-in-out;
+  }
+}
+
+.responsive-image {
+  width: 100%;
+  height: auto;
+  display: block;
+  
+  // 加载中显示骨架动画（通过 img 自身的背景）
+  &:not([data-loaded="true"]) {
+    background: linear-gradient(
+      90deg,
+      #f0f0f0 25%,
+      #e0e0e0 50%,
+      #f0f0f0 75%
+    );
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s ease-in-out infinite;
+  }
+  
+  // 加载完成后移除背景和动画
+  &[data-loaded="true"] {
+    background: none;
+    animation: none;
+  }
+  
+  // 列表页中图 - 保持原始比例
+  &-medium {
+    max-width: 100%;
+  }
+  
+  // 详情页大图
+  &-large {
+    max-width: 100%;
+  }
+  
+  // 缩略图
+  &-thumb {
+    max-width: 100%;
+  }
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}

@@ -1,22 +1,13 @@
 import { useMainStore, useUserStore,useRecordStore } from "../../../store";
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom"; // 使用 useParams 从路由获取参数
-import { timeFormat } from "../../../utils/formatters";
-import { getCampusName } from "../../../utils/formatters";
-import { message, Image, Carousel } from "antd";
+import { timeFormat, formatPrice, getCampusShort, getCampusName } from "../../../utils/formatters";
+import { message, Carousel } from "antd";
+import { ResponsiveImage } from "../../../components/ResponsiveImage";
 import "./Detail.scss";
-import copy from "../../../assets/copy-black.svg";
-import star from "../../../assets/favorites-black.svg";
-import like_true from "../../../assets/like-true.svg";
-import like_false from "../../../assets/like-false.svg";
-import dislike_true from "../../../assets/dislike-true.svg";
-import dislike_false from "../../../assets/dislike-false.svg";
-//import star from "../../../assets/star.svg";
-import stared from "../../../assets/stared.svg";
-import drop from "../../../assets/drop-black.svg";
-import share from "../../../assets/share-black.svg";
-import left from "../../../assets/left-black.svg";
-import takePlace from "../../../assets/takePlace.png";
+import "../../../Icon.scss";
+import { useDebounce,useDebouncedCallback } from '../../../hooks/useDebounce'
+import Icon from "../../../components/Icon/Icon";
 
 interface Goods {
   id: number;
@@ -236,57 +227,71 @@ const Detail = () => {
     }
   }
 
+  const handleLikeDebounce = useDebouncedCallback(handleLike,100)
+  const handleDislikeDebounce = useDebouncedCallback(handleDislike,100)
+  const handleStarDebounce = useDebouncedCallback(handleStar,100)
+
   return (
     <div className="detail-container">
       <div className="detail-navbar">
-        <img
+        <Icon
+          name="left"
+          size={32}
           className="navbar-icon"
-          src={left}
-          alt="返回"
           onClick={() => navigate("/market")}
         />
-        <img
+        <Icon
+          name="share"
+          size={32}
           className="navbar-icon"
-          src={share}
-          alt="分享"
           onClick={handleShare}
         />
       </div>
       <div className="detail-slider">
-        <Image.PreviewGroup>
-          <Carousel>
-            {currentGoods?.images && currentGoods.images.length > 0 ? (
-              currentGoods.images.map((img, index) => (
-                <div key={index} className="carousel-item">
-                  <Image
-                    className="slider-item"
-                    src={`${process.env.REACT_APP_API_URL || "http://localhost:5000"}${img}`}
-                    alt={`image-${index}`}
-                  />
-                </div>
-              ))
-            ) : (
-              <div className="carousel-item">
-                <img
+        <Carousel>
+          {currentGoods?.images && currentGoods.images.length > 0 ? (
+            currentGoods.images.map((img, index) => (
+              <div key={index} className="carousel-item">
+                <ResponsiveImage
                   className="slider-item"
-                  src={takePlace}
-                  alt="placeholder"
+                  src={`${process.env.REACT_APP_API_URL || "http://localhost:5000"}${img}`}
+                  alt={`image-${index}`}
+                  size="large"
                 />
+              </div>
+            ))
+          ) : (
+            <div className="carousel-item">
+              <div className="commodity-img-placeholder-large">
+                <span 
+                  className="placeholder-text-large"
+                  data-length={
+                    (currentGoods?.title || '').length <= 6 ? 'short' :
+                    (currentGoods?.title || '').length <= 12 ? 'medium' :
+                    (currentGoods?.title || '').length <= 20 ? 'long' : 'extra-long'
+                  }
+                >
+                  {currentGoods?.title || '暂无图片'}
+                </span>
+              </div>
               </div>
             )}
           </Carousel>
-        </Image.PreviewGroup>
       </div>
       <div className="detail-title">{currentGoods?.title}</div>
       <div className="detail-profile">
-        <div className="detail-price">￥{currentGoods?.price}</div>
-        <div className="detail-goodsType">
+        <div className="detail-price">￥{formatPrice(currentGoods?.price || 0)}</div>
+        <div className={`detail-type ${currentGoods?.goods_type === 'sell' ? 'type-sell' : 'type-receive'}`}>
           {currentGoods?.goods_type === "sell" ? "出" : "收"}
         </div>
-        <div className="detail-tag">{currentGoods?.tag}</div>
-        <div className="detail-campus">
-          {getCampusName(currentGoods?.campus_id || 1)}
-        </div>
+        {currentGoods?.campus_id && (
+          <div className="detail-campus">
+            {getCampusName(currentGoods.campus_id)}
+          </div>
+        )}
+        {currentGoods?.tag && (
+          <div className="detail-tag">{currentGoods.tag}</div>
+        )}
       </div>
       <div className="detail-content">{currentGoods?.content}</div>
       <div className="detail-author">
@@ -307,19 +312,19 @@ const Detail = () => {
         {isMine === "user" && (
           <div className="alter-user">
             <div className="user-like">
-              <img
+              <Icon
+                name={isLiked ? 'liked' : 'like'}
+                size={32}
                 className="like-icon"
-                src={isLiked ? like_true : like_false}
-                alt="喜欢"
-                onClick={handleLike}
+                onClick={handleLikeDebounce}
               />
               <div className="like-text">{currentGoods?.likes}</div>
             </div>
-            <div className="user-dislike" onClick={() => handleDislike()}>
-              <img
+            <div className="user-dislike" onClick={() => handleDislikeDebounce()}>
+              <Icon
+                name={isDisliked ? 'disliked' : 'dislike'}
+                size={32}
                 className="dislike-icon"
-                src={isDisliked ? dislike_true : dislike_false}
-                alt="不喜欢"
               />
               <div className="dislike-text">{currentGoods?.complaints}</div>
             </div>
@@ -327,33 +332,33 @@ const Detail = () => {
         )}
         {isMine === "manage" && (
           <div className="alter-manage">
-            <div className="manage-like" onClick={handleLike}>
-              <img
+            <div className="manage-like" onClick={handleLikeDebounce}>
+              <Icon
+                name={isLiked ? 'like-true' : 'like-false'}
+                size={32}
                 className="like-icon"
-                src={isLiked ? like_true : like_false}
-                alt="喜欢"
               />
               <div className="like-text">{currentGoods?.likes}</div>
             </div>
-            <div className="manage-dislike" onClick={handleDislike}>
-              <img
+            <div className="manage-dislike" onClick={handleDislikeDebounce}>
+              <Icon
+                name={isDisliked ? 'dislike-true' : 'dislike-false'}
+                size={32}
                 className="dislike-icon"
-                src={isDisliked ? dislike_true : dislike_false}
-                alt="不喜欢"
               />
               <div className="dislike-text">{currentGoods?.complaints}</div>
             </div>
-            <img className="manage-drop" src={drop} alt="删除" />
+            <Icon name="drop" size={24} className="manage-drop" />
           </div>
         )}
       </div>
       <div className="detail-btn">
-        <div className="star-btn" onClick={handleStar}>
-          <img className="starBtn-icon" src={isStared ? stared : star} alt="收藏" />
+        <div className="star-btn" onClick={handleStarDebounce}>
+          <Icon name={isStared ? 'favorited' : 'favorite'} size={24} className="starBtn-icon" />
           <div className="starBtn-text">加入收藏</div>
         </div>
         <div className="contact-btn" onClick={handleCopy}>
-          <img className="qqBtn-icon" src={copy} alt="发布者QQ号" />
+          <Icon name="copy" size={24} className="qqBtn-icon" />
           <div className="qqBtn-text">立即联系！</div>
         </div>
       </div>

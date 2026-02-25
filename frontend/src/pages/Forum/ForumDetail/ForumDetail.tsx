@@ -1,18 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './ForumDetail.scss'
+import '../../../Icon.scss';
 import { useMainStore,useRecordStore,useUserStore } from '../../../store';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Image,Card,Avatar, Button, message} from 'antd';
 import { Carousel } from 'antd';
 import dayjs from 'dayjs';
-import Liked from '../../../assets/liked.svg';
-import Star from '../../../assets/star.svg';
-import Share from '../../../assets/share.svg';
-import Like from '../../../assets/like.svg';
-import Stared from '../../../assets/stared.svg';
-import Left from '../../../assets/left-black.svg';
-import ShareIcon from '../../../assets/share-black.svg';
 import ChatInput from '../../../components/Comment/ChatInput';
+import { useDebounce,useDebouncedCallback } from '../../../hooks/useDebounce'
+import Icon from '../../../components/Icon/Icon';
 
 const ForumDetail = () => {
     const location = useLocation();
@@ -34,11 +30,13 @@ const ForumDetail = () => {
     const recordStore = useRecordStore()
 
     useEffect(() => {
-        mainStore.fetchPosts();
+        // mainStore.fetchPosts();
+        // console.log(forum)
       }, [refreshTrigger]);
 
     const forum = mainStore.posts.find((forum)=> forum.id === (forumId?parseInt(forumId):null))
 
+    console.log(forum)
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
             if (commentRef.current && !commentRef.current.contains(event.target as Node)) {
@@ -192,12 +190,16 @@ const ForumDetail = () => {
         }
     }
 
+    const starDebounce = useDebouncedCallback(star,100)
+    const commentDebounce = useDebouncedCallback(comment,100)
+    const likeDebounce = useDebouncedCallback(like,100)
+
     return (
         <div className='forum-detail'>
 
             <div className='forum-navbar'>
-                <img className='navbar-icon' src={Left} alt='返回' onClick={() => navigate('/forum')} />
-                <img className='navbar-icon' src={ShareIcon} alt='分享' onClick={share} />
+                <Icon name="left" size={32} className='navbar-icon' onClick={() => navigate('/forum')} />
+                <Icon name="share" size={32} className='navbar-icon' onClick={share} />
             </div>
 
             <div className='content'>
@@ -236,7 +238,12 @@ const ForumDetail = () => {
                 
                 <div className="comment">
                 <div className="counter">
-                    {`评论 ${forum?.comments.length||0}`}
+                    {`评论 ${
+                    (forum?.comments ?? []).length +
+                    (forum?.comments ?? []).reduce((total, comment) => {
+                        return total + (comment.replies ?? []).length;
+                    }, 0)
+                    }`}
                 </div>
 
                 <div className='comment-list'>
@@ -261,16 +268,17 @@ const ForumDetail = () => {
                                         description={comment.content}
                                     />
 
-                                    {
-                                        comment.replies.length > 0 && (
-                                            <Button type='link' onClick={(e) => {
-                                                e.stopPropagation()
-                                                setOpenReplies(openReplies === index ? null : index)
-                                                }}>
-                                                {openReplies === index ? '收起回复' : `展开${comment.replies.length}条回复`}
-                                            </Button>
-                                        )
-                                    }
+                                    {(comment.replies ?? []).length > 0 && (
+                                        <Button 
+                                            type='link' 
+                                            onClick={(e) => {
+                                            e.stopPropagation()
+                                            setOpenReplies(openReplies === index ? null : index)
+                                            }}
+                                        >
+                                            {openReplies === index ? '收起回复' : `展开${(comment.replies ?? []).length}条回复`}
+                                        </Button>
+                                        )}
 
                                     {
                                         openReplies === index && (
@@ -329,25 +337,19 @@ const ForumDetail = () => {
             </div> */}
 
             <div className="function">
-                <div className="comment" onClick={comment}>
+                <div className="comment" onClick={commentDebounce}>
                     说点什么吧
                 </div>
 
                 <div className="like">
                     <div className="icon">
-                        <img src={likeState?Liked:Like} alt='like' onClick={like}/>
+                        <Icon name={likeState ? 'liked2' : 'like2'} size={32} onClick={likeDebounce} />
                     </div>
                 </div>
 
                 <div className='star'>
                     <div className="icon">
-                        <img src={forumState?Stared:Star} alt='star' onClick={star}/>
-                    </div>
-                </div>
-
-                <div className="share">
-                    <div className='icon'>
-                        <img src={Share} alt='share' onClick={share}/>
+                        <Icon name={forumState ? 'favorited' : 'favorite'} size={32} onClick={starDebounce} />
                     </div>
                 </div>
             </div>

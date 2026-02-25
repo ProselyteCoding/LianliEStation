@@ -3,9 +3,28 @@
  * 提供常用的数据格式化，保持显示一致性
  */
 
-// 价格格式化
-export const formatPrice = (price: number): string => {
-  return `${price}r`;
+// 价格格式化 - 智能显示小数
+export const formatPrice = (price: number | string): string => {
+  const numPrice = typeof price === 'string' ? parseFloat(price) : price;
+  
+  // 如果是整数，不显示小数点
+  if (Number.isInteger(numPrice)) {
+    return `${numPrice}`;
+  }
+  
+  // 有小数，保留最多两位，去除尾部零
+  const formatted = numPrice.toFixed(2).replace(/\.?0+$/, '');
+  return formatted;
+};
+
+// 校区ID转简称
+export const getCampusShort = (campusId: number): string => {
+  const campusMap: Record<number, string> = {
+    1: '凌',
+    2: '开',
+    3: '盘'
+  };
+  return campusMap[campusId] || '?';
 };
 
 // 文件大小格式化

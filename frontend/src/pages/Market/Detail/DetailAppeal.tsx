@@ -4,9 +4,11 @@ import { Image, Upload } from "antd";
 import type { GetProp, UploadFile, UploadProps } from "antd";
 import { message } from "antd";
 import "./DetailAppeal.scss";
+import "../../../Icon.scss";
 import { useMainStore, useUserStore } from "../../../store";
 import { useParams, useNavigate } from "react-router-dom";
-import left from "../../../assets/left-black.svg";
+import { useDebounce,useDebouncedCallback } from '../../../hooks/useDebounce'
+import Icon from "../../../components/Icon/Icon";
 
 type FileType = Parameters<GetProp<UploadProps, "beforeUpload">>[0];
 
@@ -79,15 +81,17 @@ const DetailAppeal = () => {
       }
     }
   };
-
+  
+  const handleDislikeDebounce = useDebouncedCallback(handleDislike)
+  
   return (
     <div className="appeal-container">
-      <img
+      <Icon
+        name="left"
+        size={32}
         className="appeal-cancel"
-        src={left}
-        alt="取消"
         onClick={() => navigate(`/market/${Number(id)}`)}
-      ></img>
+      />
       <div className="appeal-inform">
         很抱歉您遇到不愉快的商品体验，请详细描述您遇到的问题并建议上传相应的照片/截图作为证据，我们将为您维权！
       </div>
@@ -121,7 +125,7 @@ const DetailAppeal = () => {
           />
         )}
       </div>
-      <button className="appeal-submit" onClick={handleDislike}>
+      <button className="appeal-submit" onClick={handleDislikeDebounce}>
         提交举报
       </button>
     </div>

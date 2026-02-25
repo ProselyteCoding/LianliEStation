@@ -1,14 +1,16 @@
 import Navbar from "../../../components/Navbar/Navbar";
 import { useEffect, useState, useRef } from "react";
 import { useRecordStore, useUserStore } from "../../../store";
-import takePlace from "../../../assets/takePlace.png";
 import { Card, Dropdown, Empty, message } from "antd";
-import { AppstoreOutlined, ShoppingOutlined, FileTextOutlined, SettingOutlined } from "@ant-design/icons";
 import type { MenuProps } from "antd";
+import { ResponsiveImage } from "../../../components/ResponsiveImage";
 import NoticeModal from "../../../components/NoticeModal/NoticeModal";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { px2rem } from "../../../utils/rem";
 import "./History.scss";
+import { useDebounce,useDebouncedCallback } from '../../../hooks/useDebounce'
+import {useScrollerStore} from "../../../store";
+import Icon from "../../../components/Icon/Icon";
 
 type checkBox = { [number: number]: boolean };
 
@@ -29,6 +31,10 @@ const History = () => {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const navigate = useNavigate();
+  const scrollerStore = useScrollerStore()
+  const location = useLocation()
+  const [scroller,setScroller] = useState<number>(0)
+  const bodyRef = useRef<HTMLDivElement | null>(null)
 
   const items: MenuProps["items"] = [
     {
@@ -44,7 +50,7 @@ const History = () => {
           商品
         </div>
       ),
-      icon: <ShoppingOutlined />,
+      icon: <Icon name="goods" size={18} />,
     },
     {
       key: "2",
@@ -59,13 +65,17 @@ const History = () => {
           帖子
         </div>
       ),
-      icon: <FileTextOutlined />,
+      icon: <Icon name="post" size={18} />,
     },
   ];
 
   useEffect(() => {
+    scrollerStore.updatePath(location.pathname)
+
     if (isAuthenticated) {
       getHistory();
+      const last_scroller = scrollerStore.restoreSinglePage()
+      bodyRef.current?.scrollTo(0,last_scroller)
     }
   }, [isAuthenticated, refreshTrigger]); // refreshTrigger 变化时重新获取历史记录
 
@@ -84,6 +94,11 @@ const History = () => {
   const handleOnClick = () => {
     setIsVisible(!isVisible);
   };
+
+  const handleScroll = () =>{
+    setScroller(bodyRef.current?.scrollTop || 0)
+    scrollerStore.setScroller(bodyRef.current?.scrollTop || 0)
+  }
 
   const handleCheck = (id: number) => {
     setChecked({ ...checked, [id]: !checked[id] });
@@ -206,6 +221,9 @@ const History = () => {
     }
   }
 
+  const handleOnDeleteDebounce = useDebouncedCallback(handleOnDelete)
+  const handleOnCompleteDebounce = useDebouncedCallback(handleOnComplete)
+  const handleOnEditDebounce = useDebouncedCallback(handleOnEdit)
 
   return (
     <div className="history-container">
@@ -219,22 +237,20 @@ const History = () => {
           <div className="select-item">
             <Dropdown menu={{ items }}>
               <div onClick={(e) => e.preventDefault()} style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <AppstoreOutlined
-                  style={{ width: px2rem(20), height: px2rem(20), marginRight: px2rem(5) }}
-                />
+                <Icon name={isPosts ? "post" : "goods"} size={20} />
                 {currentType}
               </div>
             </Dropdown>
           </div>
           <div className="select-item" onClick={() => handleOnClick()}>
             <div className="select-item-btn">
-              <SettingOutlined style={{ marginRight: px2rem(5) }} />
+              <Icon name="manage" size={20} />
               管理
             </div>
           </div>
         </div>
 
-        <div className="content">
+        <div className="content" ref={bodyRef} onScroll={handleScroll}>
           {!isPosts ? (
             historyGoods.length === 0 ? (
               <div className="history-empty">
@@ -260,14 +276,26 @@ const History = () => {
                   <Card className="item-description" title={goods.title} hoverable>
                     <div className="item-content">
                       <div className="item-img">
-                        <img
-                          src={
-                            goods.images[0]
-                              ? `${process.env.REACT_APP_API_URL || "http://localhost:5000"}${goods.images[0]}`
-                              : takePlace
-                          }
-                          alt=""
-                        />
+                        {goods.images[0] ? (
+                          <ResponsiveImage
+                            src={`${process.env.REACT_APP_API_URL || "http://localhost:5000"}${goods.images[0]}`}
+                            alt={goods.title}
+                            size="medium"
+                          />
+                        ) : (
+                          <div className="commodity-img-placeholder">
+                            <span 
+                              className="placeholder-text"
+                              data-length={
+                                goods.title.length <= 6 ? 'short' :
+                                goods.title.length <= 12 ? 'medium' :
+                                goods.title.length <= 20 ? 'long' : 'extra-long'
+                              }
+                            >
+                              {goods.title}
+                            </span>
+                          </div>
+                        )}
                       </div>
                       <div className="item-info">
                         <div className="item-detail">{goods.content}</div>
@@ -306,14 +334,26 @@ const History = () => {
                   <Card className="item-description" title={post.title} hoverable>
                     <div className="item-content">
                       <div className="item-img">
-                        <img
-                          src={
-                            post.images[0]
-                              ? `${process.env.REACT_APP_API_URL || "http://localhost:5000"}${post.images[0]}`
-                              : takePlace
-                          }
-                          alt=""
-                        />
+                        {post.images[0] ? (
+                          <ResponsiveImage
+                            src={`${process.env.REACT_APP_API_URL || "http://localhost:5000"}${post.images[0]}`}
+                            alt={post.title}
+                            size="medium"
+                          />
+                        ) : (
+                          <div className="commodity-img-placeholder">
+                            <span 
+                              className="placeholder-text"
+                              data-length={
+                                post.title.length <= 6 ? 'short' :
+                                post.title.length <= 12 ? 'medium' :
+                                post.title.length <= 20 ? 'long' : 'extra-long'
+                              }
+                            >
+                              {post.title}
+                            </span>
+                          </div>
+                        )}
                       </div>
                       <div className="item-info">
                         <div className="item-detail">{post.content}</div>
@@ -338,22 +378,22 @@ const History = () => {
           <div className="footer-buttons">
             {!isPosts ? (
               <>
-                <button className="btn-complete" onClick={() => handleOnComplete()}>
+                <button className="btn-complete" onClick={() => handleOnCompleteDebounce()}>
                   交易完成
                 </button>
-                <button className="btn-edit" onClick={() => handleOnEdit()}>
+                <button className="btn-edit" onClick={() => handleOnEditDebounce()}>
                   修改商品
                 </button>
-                <button className="btn-delete" onClick={() => handleOnDelete()}>
+                <button className="btn-delete" onClick={() => handleOnDeleteDebounce()}>
                   删除商品
                 </button>
               </>
             ) : (
               <>
-                <button className="btn-edit" onClick={() => handleOnEdit()}>
+                <button className="btn-edit" onClick={() => handleOnEditDebounce()}>
                   修改帖子
                 </button>
-                <button className="btn-delete" onClick={() => handleOnDelete()}>
+                <button className="btn-delete" onClick={() => handleOnDeleteDebounce()}>
                   删除帖子
                 </button>
               </>

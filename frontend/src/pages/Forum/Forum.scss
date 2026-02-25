@@ -98,7 +98,6 @@ $card-bg: #fff;
 
         .icon {
             display: flex;
-            @include size(30);
             margin-left: px2rem(10);
         }
     }
@@ -591,7 +590,10 @@ $card-bg: #fff;
         
         .custom-float-button {
             position: absolute;
+            // 降级方案：不支持 dvh 的浏览器使用 px
             bottom: px2rem(25);
+            // 优先使用 dvh：动态视口高度，自动适应移动端地址栏显隐
+            bottom: calc(3dvh + px2rem(10));
             right: px2rem(25);
             width: px2rem(45);
             height: px2rem(45);
@@ -658,4 +660,120 @@ $card-bg: #fff;
             transform: rotate(360deg);
         }
     }
+
+    // 骨架屏样式
+    .skeleton-posts {
+        width: 100%;
+        padding: px2rem(10);
+        box-sizing: border-box;
+    }
+
+    .skeleton-post-card {
+        background: #fff;
+        padding: px2rem(15);
+        margin-bottom: px2rem(10);
+        border-radius: px2rem(8);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+        .skeleton-post-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: px2rem(12);
+
+            .skeleton-avatar {
+                width: px2rem(36);
+                height: px2rem(36);
+                border-radius: 50%;
+                flex-shrink: 0;
+                background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+                background-size: 200% 100%;
+                animation: skeleton-loading 1.5s ease-in-out infinite;
+            }
+
+            .skeleton-author-name {
+                width: px2rem(80);
+                height: px2rem(16);
+                margin-left: px2rem(10);
+                border-radius: px2rem(4);
+                background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+                background-size: 200% 100%;
+                animation: skeleton-loading 1.5s ease-in-out infinite;
+            }
+        }
+
+        .skeleton-title {
+            width: 70%;
+            height: px2rem(20);
+            margin-bottom: px2rem(10);
+            border-radius: px2rem(4);
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: skeleton-loading 1.5s ease-in-out infinite;
+        }
+
+        .skeleton-content-line {
+            width: 100%;
+            height: px2rem(16);
+            margin-bottom: px2rem(8);
+            border-radius: px2rem(4);
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: skeleton-loading 1.5s ease-in-out infinite;
+
+            &.short {
+                width: 60%;
+            }
+        }
+
+        .skeleton-post-images {
+            display: flex;
+            gap: px2rem(8);
+            margin: px2rem(12) 0;
+
+            .skeleton-image-item {
+                width: px2rem(80);
+                height: px2rem(80);
+                flex-shrink: 0;
+                border-radius: px2rem(4);
+                background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+                background-size: 200% 100%;
+                animation: skeleton-loading 1.5s ease-in-out infinite;
+            }
+        }
+
+        .skeleton-likes {
+            display: flex;
+            align-items: center;
+            margin-top: px2rem(12);
+
+            .skeleton-like-icon {
+                width: px2rem(20);
+                height: px2rem(20);
+                border-radius: 50%;
+                background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+                background-size: 200% 100%;
+                animation: skeleton-loading 1.5s ease-in-out infinite;
+            }
+
+            .skeleton-like-count {
+                width: px2rem(60);
+                height: px2rem(16);
+                margin-left: px2rem(8);
+                border-radius: px2rem(4);
+                background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+                background-size: 200% 100%;
+                animation: skeleton-loading 1.5s ease-in-out infinite;
+            }
+        }
+    }
+
+    @keyframes skeleton-loading {
+        0% {
+            background-position: 200% 0;
+        }
+        100% {
+            background-position: -200% 0;
+        }
+    }
 }
+
